@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Welcher Satz stimmt? (Gemischt)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #333;
+            --correct-bg: #d4edda;
+            --correct-border: #28a745;
+            --correct-text: #155724;
+            --wrong-bg: #f8d7da;
+            --wrong-border: #dc3545;
+            --wrong-text: #721c24;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* Aufgaben-Container */
+        .question-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .context {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+            display: block;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .scenario {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #444;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        /* Antwort-Optionen Grid */
+        .options-grid {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Die Buttons (Option A / Option B) */
+        .option-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            position: relative;
+            outline: none;
+        }
+
+        .option-btn:hover {
+            border-color: #bbb;
+            background-color: #fafafa;
+        }
+
+        /* Zustände für Richtig/Falsch */
+        .option-btn.correct {
+            border-color: var(--correct-border);
+            background-color: var(--correct-bg);
+            color: var(--correct-text);
+        }
+        
+        .option-btn.correct::after {
+            content: "✓";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .option-btn.wrong {
+            border-color: var(--wrong-border);
+            background-color: var(--wrong-bg);
+            color: var(--wrong-text);
+            opacity: 0.7;
+        }
+
+        .option-btn.wrong::after {
+            content: "✗";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Steuerungs-Buttons */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        .ctrl-btn:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #607d8b; color: white; }
+        .btn-solution { background-color: var(--primary); color: white; }
+
+        /* Mobile Anpassung */
+        @media (max-width: 600px) {
+            .options-grid {
+                flex-direction: column; /* Stapeln auf Handy */
+            }
+            .option-btn {
+                width: 100%;
+            }
+            h1 { font-size: 1.5rem; }
+            .container { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Russisch: Welcher Satz stimmt?</h1>
+        <p class="instruction">Wählen Sie den Satz aus, der grammatikalisch korrekt ist. Achten Sie auf den Unterschied zwischen „Existenz“ und „Beschreibung“.</p>
+    </header>
+
+    <!-- Aufgabe 1: Körperteil + Adjektiv -->
+    <!-- Lösung: B (ohne есть) -->
+    <div class="question-card" id="q1">
+        <span class="context">Körperteil & Beschreibung</span>
+        <div class="scenario">Sie wollen sagen: „Sie hat schöne Augen.“</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, false)">
+                A) У неё есть красивые глаза.
+            </button>
+            <button class="option-btn" onclick="check(this, true)">
+                B) У неё красивые глаза.
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 2: Besitz (Existenz) -->
+    <!-- Lösung: A (mit есть) -->
+    <div class="question-card" id="q2">
+        <span class="context">Besitz (Existenz)</span>
+        <div class="scenario">Sie wollen fragen: „Hast du ein Auto?“ (Besitzt du eins?)</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, true)">
+                A) У тебя есть машина?
+            </button>
+            <button class="option-btn" onclick="check(this, false)">
+                B) У тебя машина?
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 3: Krankheit -->
+    <!-- Lösung: A (ohne есть) - GEÄNDERT von B -->
+    <div class="question-card" id="q3">
+        <span class="context">Krankheit</span>
+        <div class="scenario">Sie wollen sagen: „Er hat Grippe.“</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, true)">
+                A) У него грипп.
+            </button>
+            <button class="option-btn" onclick="check(this, false)">
+                B) У него есть грипп.
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 4: Besonderheit am Körper -->
+    <!-- Lösung: B (mit есть) - GEÄNDERT von A -->
+    <div class="question-card" id="q4">
+        <span class="context">Besonderheit am Körper</span>
+        <div class="scenario">Sie wollen sagen: „Sie hat eine Narbe.“ (Betonung: Da ist etwas Besonderes).</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, false)">
+                A) У неё шрам.
+            </button>
+            <button class="option-btn" onclick="check(this, true)">
+                B) У неё есть шрам.
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 5: Wetter -->
+    <!-- Lösung: B (ohne есть) -->
+    <div class="question-card" id="q5">
+        <span class="context">Wetter</span>
+        <div class="scenario">Sie wollen sagen: „Draußen regnet es.“ (Normaler Zustand).</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, false)">
+                A) На улице есть дождь.
+            </button>
+            <button class="option-btn" onclick="check(this, true)">
+                B) На улице дождь.
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 6: Adjektiv-Attribut -->
+    <!-- Lösung: A (ohne есть) - GEÄNDERT von B -->
+    <div class="question-card" id="q6">
+        <span class="context">Gegenstand mit Beschreibung</span>
+        <div class="scenario">Sie wollen sagen: „Er hat eine teure Tasche.“ (Fokus: teuer).</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, true)">
+                A) У него дорогая сумка.
+            </button>
+            <button class="option-btn" onclick="check(this, false)">
+                B) У него есть дорогая сумка.
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 7: Termin (Aktivität) -->
+    <!-- Lösung: B (ohne есть) -->
+    <div class="question-card" id="q7">
+        <span class="context">Termin (Beschäftigung)</span>
+        <div class="scenario">Jemand fragt: „Kannst du reden?“ Sie antworten: „Nein, ich habe jetzt Unterricht.“</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, false)">
+                A) У меня сейчас есть урок.
+            </button>
+            <button class="option-btn" onclick="check(this, true)">
+                B) У меня сейчас урок.
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 8: Ort (Existenz) -->
+    <!-- Lösung: A (mit есть) -->
+    <div class="question-card" id="q8">
+        <span class="context">Ort (Existenz)</span>
+        <div class="scenario">Sie wollen sagen: „In der Stadt gibt es ein Theater.“ (Es ist vorhanden).</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, true)">
+                A) В городе есть театр.
+            </button>
+            <button class="option-btn" onclick="check(this, false)">
+                B) В городе театр.
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 9: Charakter -->
+    <!-- Lösung: A (ohne есть) - GEÄNDERT von B -->
+    <div class="question-card" id="q9">
+        <span class="context">Charakter</span>
+        <div class="scenario">Sie wollen sagen: „Ich habe einen schwierigen Charakter.“</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, true)">
+                A) У меня сложный характер.
+            </button>
+            <button class="option-btn" onclick="check(this, false)">
+                B) У меня есть сложный характер.
+            </button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 10: Zahlwörter -->
+    <!-- Lösung: B (ohne есть) - GEÄNDERT von A -->
+    <div class="question-card" id="q10">
+        <span class="context">Menge / Zahl</span>
+        <div class="scenario">Sie antworten auf die Frage „Wie viele Brüder hast du?“: „Ich habe drei Brüder.“</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="check(this, false)">
+                A) У меня есть три брата.
+            </button>
+            <button class="option-btn" onclick="check(this, true)">
+                B) У меня три брата.
+            </button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="resetAll()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solution" onclick="showSolutions()">Lösungen anzeigen</button>
+    </div>
+
+</div>
+
+<script>
+    function check(btn, isCorrect) {
+        // Zuerst alle Buttons in dieser speziellen Frage zurücksetzen
+        const parentGrid = btn.closest('.options-grid');
+        const buttons = parentGrid.querySelectorAll('.option-btn');
+        
+        buttons.forEach(b => {
+            b.classList.remove('correct', 'wrong');
+        });
+
+        // Dann den geklickten Button markieren
+        if (isCorrect) {
+            btn.classList.add('correct');
+        } else {
+            btn.classList.add('wrong');
+        }
+    }
+
+    function resetAll() {
+        const allButtons = document.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => {
+            btn.classList.remove('correct', 'wrong');
+        });
+    }
+
+    function showSolutions() {
+        // Setzt erst alles zurück, um Konflikte zu vermeiden
+        resetAll();
+
+        // Geht durch alle Buttons und simuliert einen Klick auf die richtigen
+        // Wir erkennen die richtigen daran, dass im HTML onclick="check(this, true)" steht
+        const allButtons = document.querySelectorAll('.option-btn');
+        allButtons.forEach(btn => {
+            const attr = btn.getAttribute('onclick');
+            if (attr && attr.includes('true')) {
+                btn.classList.add('correct');
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
