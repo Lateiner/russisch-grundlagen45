@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russische Grammatik: Das Verb есть - Sofortiges Feedback</title>
+    <!-- Polyfill für Drag & Drop auf Touch-Geräten -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --success: #2e7d32;
+            --success-bg: #e8f5e9;
+            --error: #c62828;
+            --error-bg: #ffebee;
+            --text: #333;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h1 { margin: 0; }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--primary-light); padding-bottom: 10px; margin-top: 30px;}
+        h3 { margin-top: 0; }
+
+        .theory-box {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .task-card {
+            background: var(--card-bg);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #ddd;
+        }
+
+        .task-instruction {
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: block;
+            color: #555;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn-reset { background-color: #ff9800; color: white; }
+        .btn-reset:hover { background-color: #f57c00; }
+
+        .btn-solution { background-color: #9e9e9e; color: white; }
+        .btn-solution:hover { background-color: #757575; }
+
+        /* Inputs & Interaction Elements */
+        select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* Immediate Feedback Classes */
+        select.correct, .dd-item.correct { 
+            border: 2px solid var(--success); 
+            background-color: var(--success-bg); 
+            color: var(--success);
+            font-weight: bold;
+        }
+        select.incorrect, .dd-item.incorrect { 
+            border: 2px solid var(--error); 
+            background-color: var(--error-bg); 
+            color: var(--error);
+        }
+
+        /* Radio Group Styling */
+        .radio-group label {
+            display: block;
+            margin-bottom: 8px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .radio-group label:hover { background-color: var(--primary-light); }
+        .radio-group input { margin-right: 10px; transform: scale(1.2); }
+        
+        /* Radio Feedback */
+        .radio-group label.correct-choice {
+            background-color: var(--success-bg);
+            border-color: var(--success);
+            color: var(--success);
+            font-weight: bold;
+        }
+        .radio-group label.correct-choice::after {
+            content: " ✓ Richtig";
+            float: right;
+        }
+        
+        .radio-group label.wrong-choice {
+            background-color: var(--error-bg);
+            border-color: var(--error);
+            color: var(--error);
+        }
+        .radio-group label.wrong-choice::after {
+            content: " ✗ Falsch";
+            float: right;
+        }
+
+        /* Drag and Drop Styling */
+        .dd-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .dd-source, .dd-target {
+            background: #f9f9f9;
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            min-height: 100px;
+            flex: 1;
+            min-width: 200px;
+            transition: border-color 0.3s;
+        }
+        .dd-target:hover { border-color: var(--primary); }
+        .dd-target h4 { margin-top: 0; text-align: center; pointer-events: none; color: #777;}
+        
+        .dd-item {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: move;
+            display: inline-block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 600px) {
+            .dd-container { flex-direction: column; }
+            .controls { flex-direction: column; }
+            button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Russische Grammatik</h1>
+        <p>Verwendung des Verbs <strong>есть</strong></p>
+    </header>
+
+    <section class="theory-box">
+        <h3>Grundlagen: Wann benutzen wir „есть“?</h3>
+        <p>Im Russischen wird das Verb <strong>есть</strong> (sein/haben) in der Gegenwart oft weggelassen. Es gibt jedoch eine klare Regel, wann es stehen muss.</p>
+        
+        <p><strong>1. Wir benutzen „есть“ (Betonung auf EXISTENZ/BESITZ):</strong><br>
+        Wenn wir sagen wollen, dass etwas existiert oder vorhanden ist (Gegenteil von „nein“/„nicht haben“).<br>
+        <em>Beispiel:</em> „У меня <strong>есть</strong> вопрос.“ (Ich habe eine Frage – sie existiert.)</p>
+
+        <p><strong>2. Wir benutzen KEIN „есть“ (Betonung auf EIGENSCHAFT oder ZUSTAND):</strong><br>
+        Wenn wir das Objekt näher beschreiben (Adjektive, Zahlwörter), über Körperteile, Krankheiten oder das Wetter sprechen.<br>
+        <em>Beispiel:</em> „У меня большая машина.“ (Ich habe ein <em>großes</em> Auto – Fokus auf „groß“.)<br>
+        <em>Beispiel:</em> „У неё красивые глаза.“ (Körperteil + Eigenschaft.)<br>
+        <em>Beispiel:</em> „У девушки грипп.“ (Krankheit.)</p>
+    </section>
+
+    <!-- Aufgabe 1 -->
+    <div class="task-card" id="task1">
+        <h3>1. Existenz oder Beschreibung?</h3>
+        <span class="task-instruction">Wählen Sie aus. Das Feedback erscheint sofort.</span>
+        
+        <div style="display: grid; gap: 10px;">
+            <div>
+                1. У меня <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> идея. (Fokus: Ich habe eine.)
+            </div>
+            <div>
+                2. У меня <select data-ans="-" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> хорошая идея. (Fokus: Sie ist gut.)
+            </div>
+            <div>
+                3. У нас <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> время? (Fokus: Haben wir es überhaupt?)
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSelects('task1')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveSelects('task1')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 2 -->
+    <div class="task-card" id="task2">
+        <h3>2. Körperteile und Besonderheiten</h3>
+        <span class="task-instruction">Ziehen Sie die Elemente in die Boxen. Feedback erfolgt beim Ablegen.</span>
+        
+        <div class="dd-container">
+            <div class="dd-source" id="t2-source" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="dd-item" draggable="true" ondragstart="drag(event)" id="t2-i1" data-cat="no">голубые глаза</div>
+                <div class="dd-item" draggable="true" ondragstart="drag(event)" id="t2-i2" data-cat="yes">татуировка</div>
+                <div class="dd-item" draggable="true" ondragstart="drag(event)" id="t2-i3" data-cat="no">длинные волосы</div>
+                <div class="dd-item" draggable="true" ondragstart="drag(event)" id="t2-i4" data-cat="yes">шрам (Narbe)</div>
+            </div>
+            <div class="dd-target" id="t2-yes" ondrop="drop(event)" ondragover="allowDrop(event)" data-target="yes">
+                <h4>Mit „есть“</h4>
+            </div>
+            <div class="dd-target" id="t2-no" ondrop="drop(event)" ondragover="allowDrop(event)" data-target="no">
+                <h4>Ohne „есть“</h4>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetDragDrop('task2', 't2-source')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveDragDrop('task2', 't2-source')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 3 -->
+    <div class="task-card" id="task3">
+        <h3>3. Krankheiten</h3>
+        <span class="task-instruction">Wählen Sie den korrekten Satz.</span>
+        
+        <div class="radio-group">
+            <label><input type="radio" name="t3" value="wrong" onchange="validateRadio(this.name, 'correct')"> У брата есть грипп.</label>
+            <label><input type="radio" name="t3" value="correct" onchange="validateRadio(this.name, 'correct')"> У брата грипп.</label>
+        </div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetRadio('task3')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveRadio('task3', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 4 -->
+    <div class="task-card" id="task4">
+        <h3>4. Das Wetter</h3>
+        <span class="task-instruction">Vervollständigen Sie die Sätze über das Wetter.</span>
+        
+        <p>1. Heute ist schönes Wetter: „Сегодня <select data-ans="-" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> хорошая погода.“</p>
+        <p>2. Regnet es draußen? (Frage nach Existenz): „На улице <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> дождь?“</p>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSelects('task4')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveSelects('task4')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 5 -->
+    <div class="task-card" id="task5">
+        <h3>5. Abstrakte Begriffe (Veranstaltungen)</h3>
+        <span class="task-instruction">Klicken Sie an: Welcher Satz bedeutet „Ich habe jetzt gerade Unterricht“ (Ich bin beschäftigt)?</span>
+        
+        <div class="radio-group">
+            <label><input type="radio" name="t5" value="correct" onchange="validateRadio(this.name, 'correct')"> У меня урок.</label>
+            <label><input type="radio" name="t5" value="wrong" onchange="validateRadio(this.name, 'correct')"> У меня есть урок.</label>
+        </div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetRadio('task5')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveRadio('task5', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 6 -->
+    <div class="task-card" id="task6">
+        <h3>6. Adjektive und Beschreibungen</h3>
+        <span class="task-instruction">Wenn ein Adjektiv das Substantiv beschreibt, fällt „есть“ weg.</span>
+        
+        <div style="display: grid; gap: 10px;">
+            <div>У тебя <select data-ans="-" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> новый телефон? (neu)</div>
+            <div>У тебя <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> телефон? (überhaupt)</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSelects('task6')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveSelects('task6')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 7 -->
+    <div class="task-card" id="task7">
+        <h3>7. Ort: „Где ...?“</h3>
+        <span class="task-instruction">Entscheiden Sie anhand des Kontextes.</span>
+        <p><em>Kontext: Wir beschreiben die Stadt.</em></p>
+        <p>„В городе <select data-ans="-" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> красивый парк.“</p>
+        <p><em>Kontext: Gibt es hier einen Park oder nicht?</em></p>
+        <p>„В городе <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> парк?“</p>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSelects('task7')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveSelects('task7')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 8 -->
+    <div class="task-card" id="task8">
+        <h3>8. Sortieren: Ja oder Nein?</h3>
+        <span class="task-instruction">Ziehen Sie die Sätze in die richtige Box.</span>
+        
+        <div class="dd-container">
+            <div class="dd-source" id="t8-source" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="dd-item" draggable="true" ondragstart="drag(event)" id="t8-i1" data-cat="yes">У нас ... проблема. (Existenz)</div>
+                <div class="dd-item" draggable="true" ondragstart="drag(event)" id="t8-i2" data-cat="no">У нас ... сложная проблема. (Beschreibung)</div>
+                <div class="dd-item" draggable="true" ondragstart="drag(event)" id="t8-i3" data-cat="no">У кошки ... белые лапы. (Körperteil)</div>
+            </div>
+            <div class="dd-target" id="t8-yes" ondrop="drop(event)" ondragover="allowDrop(event)" data-target="yes">
+                <h4>Hier fehlt „есть“</h4>
+            </div>
+            <div class="dd-target" id="t8-no" ondrop="drop(event)" ondragover="allowDrop(event)" data-target="no">
+                <h4>Hier fehlt „–“</h4>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetDragDrop('task8', 't8-source')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveDragDrop('task8', 't8-source')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 9 -->
+    <div class="task-card" id="task9">
+        <h3>9. Fehler finden</h3>
+        <span class="task-instruction">Achtung: Welcher Satz ist grammatikalisch <strong>falsch</strong>? (Klicken Sie den falschen Satz an).</span>
+        
+        <div class="radio-group">
+            <label><input type="radio" name="t9" value="correct1" onchange="validateRadio(this.name, 'wrong')"> У мамы добрая улыбка.</label>
+            <label><input type="radio" name="t9" value="wrong" onchange="validateRadio(this.name, 'wrong')"> У мамы есть добрая улыбка.</label>
+            <label><input type="radio" name="t9" value="correct2" onchange="validateRadio(this.name, 'wrong')"> У мамы есть улыбка на лице.</label>
+        </div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetRadio('task9')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveRadio('task9', 'wrong')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 10 -->
+    <div class="task-card" id="task10">
+        <h3>10. Dialog ergänzen</h3>
+        <span class="task-instruction">Vervollständigen Sie den Dialog.</span>
+        
+        <p>A: У тебя <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> ручка?</p>
+        <p>B: Да, у меня <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> ручка. Вот она.</p>
+        <p>A: А у тебя <select data-ans="-" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> красная ручка?</p>
+        <p>B: Нет, красной нет.</p>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSelects('task10')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveSelects('task10')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 11 -->
+    <div class="task-card" id="task11">
+        <h3>11. Zahlwörter (Definition)</h3>
+        <span class="task-instruction">Wenn wir zählen, wie viele wir haben (Fokus auf Zahl), lassen wir „есть“ weg.</span>
+        
+        <p>Frage: „У тебя два брата или три?“ (Hast du zwei Brüder oder drei?)</p>
+        <p>Antwort: „У меня <select data-ans="-" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> три брата.“</p>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSelects('task11')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveSelects('task11')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 12 -->
+    <div class="task-card" id="task12">
+        <h3>12. Zusammenfassung</h3>
+        <span class="task-instruction">Entscheiden Sie für jeden Satz.</span>
+        
+        <div style="margin-bottom: 5px;">1. (Krankheit) У пациента <select data-ans="-" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> рак.</div>
+        <div style="margin-bottom: 5px;">2. (Besitz) У меня <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> деньги.</div>
+        <div style="margin-bottom: 5px;">3. (Beschreibung) У него <select data-ans="-" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> большие деньги.</div>
+        <div style="margin-bottom: 5px;">4. (Besonderheit) У неё <select data-ans="есть" onchange="validateSelect(this)"><option value="">?</option><option value="есть">есть</option><option value="-">–</option></select> пирсинг.</div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSelects('task12')">Zurücksetzen</button>
+            <button class="btn-solution" onclick="solveSelects('task12')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* --- Allgemeine Hilfsfunktionen --- */
+    function getTaskElement(taskId) {
+        return document.getElementById(taskId);
+    }
+    
+    /* --- Sofortiges Feedback: Dropdowns (Select) --- */
+    function validateSelect(selectEl) {
+        // Falls leer (Zurückgesetzt), keine Farbe
+        if (selectEl.value === "") {
+            selectEl.className = "";
+            return;
+        }
+
+        // Vergleich Wert mit data-ans
+        if (selectEl.value === selectEl.getAttribute('data-ans')) {
+            selectEl.classList.remove('incorrect');
+            selectEl.classList.add('correct');
+        } else {
+            selectEl.classList.remove('correct');
+            selectEl.classList.add('incorrect');
+        }
+    }
+
+    function resetSelects(taskId) {
+        const task = getTaskElement(taskId);
+        const selects = task.querySelectorAll('select');
+        selects.forEach(s => {
+            s.value = "";
+            s.classList.remove('correct', 'incorrect');
+        });
+    }
+
+    function solveSelects(taskId) {
+        const task = getTaskElement(taskId);
+        const selects = task.querySelectorAll('select');
+        selects.forEach(s => {
+            s.value = s.getAttribute('data-ans');
+            validateSelect(s); // Trigger Feedback
+        });
+    }
+
+    /* --- Sofortiges Feedback: Radio Buttons --- */
+    function validateRadio(groupName, correctVal) {
+        const radios = document.getElementsByName(groupName);
+        radios.forEach(r => {
+            // Reset styles
+            r.parentElement.classList.remove('correct-choice', 'wrong-choice');
+            
+            // Wenn ausgewählt, prüfen
+            if (r.checked) {
+                if (r.value === correctVal) {
+                    r.parentElement.classList.add('correct-choice');
+                } else {
+                    r.parentElement.classList.add('wrong-choice');
+                }
+            }
+        });
+    }
+
+    function resetRadio(taskId) {
+        const task = getTaskElement(taskId);
+        const radios = task.querySelectorAll('input[type="radio"]');
+        radios.forEach(r => {
+            r.checked = false;
+            r.parentElement.classList.remove('correct-choice', 'wrong-choice');
+        });
+    }
+
+    function solveRadio(taskId, correctValue) {
+        const task = getTaskElement(taskId);
+        const correctRadio = task.querySelector(`input[value="${correctValue}"]`);
+        if (correctRadio) {
+            correctRadio.checked = true;
+            // Name des Radiobuttons holen, um Validierung auszulösen
+            validateRadio(correctRadio.name, correctValue);
+        }
+    }
+
+    /* --- Sofortiges Feedback: Drag & Drop --- */
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        var data = ev.dataTransfer.getData("text");
+        var draggedElement = document.getElementById(data);
+        
+        // Finde die Zielzone
+        let target = ev.target;
+        while(target && !target.classList.contains('dd-target') && !target.classList.contains('dd-source')){
+             target = target.parentElement;
+        }
+
+        if (target) {
+            target.appendChild(draggedElement);
+            
+            // Sofortige Validierung, wenn in einer Zielzone
+            if (target.classList.contains('dd-target')) {
+                const expectedCat = target.getAttribute('data-target');
+                const actualCat = draggedElement.getAttribute('data-cat');
+                
+                if (expectedCat === actualCat) {
+                    draggedElement.classList.add('correct');
+                    draggedElement.classList.remove('incorrect');
+                } else {
+                    draggedElement.classList.add('incorrect');
+                    draggedElement.classList.remove('correct');
+                }
+            } else {
+                // Wenn zurück zur Quelle gezogen, Reset Styles
+                draggedElement.classList.remove('correct', 'incorrect');
+            }
+        }
+    }
+
+    function resetDragDrop(taskId, sourceId) {
+        const task = getTaskElement(taskId);
+        const source = document.getElementById(sourceId);
+        const items = task.querySelectorAll('.dd-item');
+        
+        // Alphabetisch/Nach ID sortieren, um ursprüngliche Reihenfolge wiederherzustellen
+        const itemsArray = Array.from(items);
+        itemsArray.sort((a, b) => a.id.localeCompare(b.id));
+
+        itemsArray.forEach(item => {
+            item.classList.remove('correct', 'incorrect');
+            source.appendChild(item);
+        });
+    }
+
+    function solveDragDrop(taskId, sourceId) {
+        const task = getTaskElement(taskId);
+        const items = task.querySelectorAll('.dd-item');
+        
+        items.forEach(item => {
+            const cat = item.getAttribute('data-cat');
+            // Finde Ziel mit passendem data-target
+            const target = task.querySelector(`.dd-target[data-target="${cat}"]`);
+            if(target) {
+                target.appendChild(item);
+                item.classList.remove('incorrect');
+                item.classList.add('correct');
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
