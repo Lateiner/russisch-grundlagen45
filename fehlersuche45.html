@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Fehlersuche (10 Sätze)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #333;
+            --correct: #2e7d32; /* Dunkelgrün */
+            --correct-bg: #e8f5e9;
+            --wrong: #c62828; /* Dunkelrot */
+            --wrong-bg: #ffebee;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instruction {
+            background-color: #fff;
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            border-radius: 4px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Liste der Sätze */
+        .sentence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sentence-card {
+            background-color: var(--card);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        /* Layout innerhalb der Karte: Text links, Buttons rechts */
+        .card-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .russian-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            flex: 1; /* Nimmt den verfügbaren Platz ein */
+        }
+
+        /* Buttons Richtig/Falsch */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            min-width: 200px; /* Damit Buttons nicht zu klein werden */
+            justify-content: flex-end;
+        }
+
+        .choice-btn {
+            padding: 10px 20px;
+            border: 2px solid #ccc;
+            background: white;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+        }
+
+        .choice-btn:hover {
+            background-color: #f0f0f0;
+            border-color: #999;
+        }
+
+        /* Feedback-Styles für Buttons */
+        .choice-btn.success {
+            background-color: var(--correct);
+            border-color: var(--correct);
+            color: white;
+        }
+
+        .choice-btn.failure {
+            background-color: var(--wrong);
+            border-color: var(--wrong);
+            color: white;
+            opacity: 0.5;
+        }
+
+        /* Erklärungstext (versteckt am Anfang) */
+        .explanation {
+            font-size: 0.9rem;
+            color: #555;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            display: none;
+            margin-top: 5px;
+        }
+
+        .explanation.visible {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .status-icon {
+            font-size: 1.2rem;
+            margin-right: 10px;
+            display: none;
+        }
+
+        /* Statusfarben für die ganze Karte */
+        .sentence-card.solved-correct {
+            border-left: 5px solid var(--correct);
+            background-color: var(--correct-bg);
+        }
+
+        .sentence-card.solved-wrong {
+            border-left: 5px solid var(--wrong);
+            background-color: var(--wrong-bg);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Mobile Anpassung */
+        @media (max-width: 600px) {
+            .card-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .btn-group {
+                width: 100%;
+            }
+            .russian-text {
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Footer Controls */
+        .controls {
+            margin-top: 40px;
+            text-align: center;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .main-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-reset { background-color: #607d8b; color: white; }
+        .btn-solve { background-color: var(--primary); color: white; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Russisch: Fehlersuche</h1>
+        <p>Bewerten Sie die Sätze. Ist der Gebrauch von „есть“ korrekt oder falsch?</p>
+    </header>
+
+    <div class="instruction">
+        <strong>Anleitung:</strong> Lesen Sie den Satz. Klicken Sie auf <strong>„Richtig“</strong>, wenn der Satz grammatikalisch korrekt ist. Klicken Sie auf <strong>„Falsch“</strong>, wenn er einen Fehler enthält (z.B. unnötiges „есть“).
+    </div>
+
+    <div class="sentence-list">
+
+        <!-- Satz 1: Krankheit (Fehler) -->
+        <div class="sentence-card" id="card1">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>1. У девушки есть грипп.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(1, 'Falsch')">Richtig</button>
+                    <button class="choice-btn" onclick="check(1, 'Richtig')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Fehler!</strong> Bei Krankheiten benutzen wir kein „есть“. Richtig: „У девушки грипп.“
+            </div>
+        </div>
+
+        <!-- Satz 2: Existenz (Korrekt) -->
+        <div class="sentence-card" id="card2">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>2. У меня есть вопрос.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(2, 'Richtig')">Richtig</button>
+                    <button class="choice-btn" onclick="check(2, 'Falsch')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Korrekt!</strong> Hier liegt der Fokus auf der Existenz (Ich habe einen Frage, nicht keinen).
+            </div>
+        </div>
+
+        <!-- Satz 3: Körperteil + Adjektiv (Fehler) -->
+        <div class="sentence-card" id="card3">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>3. У неё есть красивые глаза.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(3, 'Falsch')">Richtig</button>
+                    <button class="choice-btn" onclick="check(3, 'Richtig')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Fehler!</strong> Wenn wir Körperteile beschreiben (schöne Augen), benutzen wir kein „есть“.
+            </div>
+        </div>
+
+        <!-- Satz 4: Besonderheit am Körper (Korrekt) -->
+        <div class="sentence-card" id="card4">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>4. У него есть татуировка.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(4, 'Richtig')">Richtig</button>
+                    <button class="choice-btn" onclick="check(4, 'Falsch')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Korrekt!</strong> Eine Tätowierung ist eine Besonderheit (kein normaler Körperteil), daher benutzen wir „есть“ für die Existenz.
+            </div>
+        </div>
+
+        <!-- Satz 5: Definition/Adjektiv (Fehler) -->
+        <div class="sentence-card" id="card5">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>5. У брата есть новая машина.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(5, 'Falsch')">Richtig</button>
+                    <button class="choice-btn" onclick="check(5, 'Richtig')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Fehler!</strong> Durch das Adjektiv „новая“ (neu) liegt der Fokus auf der Beschreibung, nicht der reinen Existenz. Besser: „У брата новая машина.“
+            </div>
+        </div>
+
+        <!-- Satz 6: Wetter (Fehler) -->
+        <div class="sentence-card" id="card6">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>6. На улице есть снег.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(6, 'Falsch')">Richtig</button>
+                    <button class="choice-btn" onclick="check(6, 'Richtig')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Unnatürlich!</strong> Beim Wetter benutzen wir normalerweise kein „есть“, es sei denn, wir betonen extrem die Existenz. Normal: „На улице снег.“
+            </div>
+        </div>
+
+        <!-- Satz 7: Zahlwort (Fehler) -->
+        <div class="sentence-card" id="card7">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>7. У тебя есть три сестры?</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(7, 'Falsch')">Richtig</button>
+                    <button class="choice-btn" onclick="check(7, 'Richtig')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Fehler!</strong> Wenn wir nach der Anzahl fragen (drei?), fällt „есть“ weg. Richtig: „У тебя три сестры?“
+            </div>
+        </div>
+
+        <!-- Satz 8: Ort/Existenz (Korrekt) -->
+        <div class="sentence-card" id="card8">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>8. В городе есть аптека.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(8, 'Richtig')">Richtig</button>
+                    <button class="choice-btn" onclick="check(8, 'Falsch')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Korrekt!</strong> Wir sagen, dass es in der Stadt eine Apotheke gibt (Existenz).
+            </div>
+        </div>
+
+        <!-- Satz 9: Körperteil + Adjektiv (Fehler - NEU) -->
+        <div class="sentence-card" id="card9">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>9. У неё есть длинные волосы.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(9, 'Falsch')">Richtig</button>
+                    <button class="choice-btn" onclick="check(9, 'Richtig')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Fehler!</strong> Auch hier wird ein Körperteil beschrieben (lang). Wir benutzen kein „есть“. Richtig: „У неё длинные волосы.“
+            </div>
+        </div>
+
+        <!-- Satz 10: Ort (Existenz - NEU) -->
+        <div class="sentence-card" id="card10">
+            <div class="card-content">
+                <span class="russian-text"><span class="status-icon"></span>10. В парке есть озеро.</span>
+                <div class="btn-group">
+                    <button class="choice-btn" onclick="check(10, 'Richtig')">Richtig</button>
+                    <button class="choice-btn" onclick="check(10, 'Falsch')">Falsch</button>
+                </div>
+            </div>
+            <div class="explanation">
+                <strong>Korrekt!</strong> Es wird betont, dass im Park ein See existiert.
+            </div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="main-btn btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="main-btn btn-solve" onclick="showSolution()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /**
+     * Prüft die Antwort.
+     * @param {number} id - Die ID der Karte
+     * @param {string} correctnessOfChoice - Ob der geklickte Button die richtige Antwort darstellt ('Richtig' oder 'Falsch' bezieht sich auf die Logik)
+     */
+    function check(id, correctnessOfChoice) {
+        const card = document.getElementById('card' + id);
+        const explanation = card.querySelector('.explanation');
+        const icon = card.querySelector('.status-icon');
+        
+        // Button der geklickt wurde
+        const clickedBtn = event.target;
+
+        // Reset Styles für Buttons in dieser Karte
+        const buttons = card.querySelectorAll('.choice-btn');
+        buttons.forEach(btn => btn.classList.remove('success', 'failure'));
+
+        if (correctnessOfChoice === 'Richtig') {
+            // Der User hat die korrekte Wahl getroffen
+            clickedBtn.classList.add('success');
+            card.classList.add('solved-correct');
+            card.classList.remove('solved-wrong');
+            icon.textContent = "✓ ";
+            icon.style.color = "var(--correct)";
+        } else {
+            // Der User hat die falsche Wahl getroffen
+            clickedBtn.classList.add('failure');
+            card.classList.add('solved-wrong');
+            card.classList.remove('solved-correct');
+            icon.textContent = "✗ ";
+            icon.style.color = "var(--wrong)";
+        }
+
+        icon.style.display = "inline";
+        explanation.classList.add('visible');
+    }
+
+    function resetAll() {
+        const cards = document.querySelectorAll('.sentence-card');
+        cards.forEach(card => {
+            card.classList.remove('solved-correct', 'solved-wrong');
+            
+            const buttons = card.querySelectorAll('.choice-btn');
+            buttons.forEach(btn => btn.classList.remove('success', 'failure'));
+
+            const expl = card.querySelector('.explanation');
+            expl.classList.remove('visible');
+
+            const icon = card.querySelector('.status-icon');
+            icon.textContent = "";
+            icon.style.display = "none";
+        });
+    }
+
+    function showSolution() {
+        // Simuliert Klicks auf die richtigen Buttons
+        const cards = document.querySelectorAll('.sentence-card');
+        
+        cards.forEach(card => {
+            const buttons = card.querySelectorAll('.choice-btn');
+            buttons.forEach(b => b.classList.remove('success', 'failure'));
+
+            // Finde den richtigen Button (der im onclick den String 'Richtig' als 2. Parameter hat)
+            buttons.forEach(btn => {
+                const clickAttr = btn.getAttribute('onclick');
+                if (clickAttr.includes(", 'Richtig')")) {
+                    btn.classList.add('success');
+                    const expl = card.querySelector('.explanation');
+                    expl.classList.add('visible');
+                    card.classList.add('solved-correct');
+                    card.classList.remove('solved-wrong');
+                }
+            });
+        });
+    }
+</script>
+
+</body>
+</html>
