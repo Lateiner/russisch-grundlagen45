@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Dialoge ergänzen (3 Dialoge)</title>
+    <style>
+        :root {
+            --primary: #075e54; /* WhatsApp Green Dark */
+            --bg: #e5ddd5; 
+            --bubble-sent: #dcf8c6; 
+            --bubble-rcvd: #ffffff; 
+            --text: #333;
+            --success: #4caf50;
+            --error: #f44336;
+            --radius: 12px;
+            --separator-bg: #d1d8e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #dcdcdc; /* Hintergrund hinter dem Handy-Container */
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-image: linear-gradient(#e5ddd5 2px, transparent 2px),
+            linear-gradient(90deg, #e5ddd5 2px, transparent 2px);
+            background-size: 20px 20px;
+            background-color: #efe7dd;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            overflow: hidden;
+            border: 1px solid #ccc;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        h1 { margin: 0; font-size: 1.3rem; }
+        p { margin: 5px 0 0; font-size: 0.85rem; opacity: 0.9; }
+
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        /* Datumstrennlinie */
+        .date-separator {
+            align-self: center;
+            background-color: rgba(225, 245, 254, 0.9);
+            color: #555;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin: 20px 0;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Sprechblasen */
+        .bubble {
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: var(--radius);
+            position: relative;
+            font-size: 0.95rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            line-height: 1.8;
+        }
+
+        .bubble.received {
+            align-self: flex-start;
+            background-color: var(--bubble-rcvd);
+            border-top-left-radius: 0;
+        }
+
+        .bubble.sent {
+            align-self: flex-end;
+            background-color: var(--bubble-sent);
+            border-top-right-radius: 0;
+        }
+
+        .speaker-name {
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: block;
+        }
+        /* Farben für Namen, um Dialoge zu unterscheiden */
+        .d1 .speaker-name { color: #e91e63; } /* Dialog 1 */
+        .d2 .speaker-name { color: #9c27b0; } /* Dialog 2 */
+        .d3 .speaker-name { color: #ff5722; } /* Dialog 3 */
+        .sent .speaker-name { color: var(--primary); }
+
+        /* Dropdowns */
+        select {
+            appearance: none;
+            background-color: rgba(0,0,0,0.05);
+            border: none;
+            border-bottom: 2px solid #999;
+            padding: 2px 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #333;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            outline: none;
+            min-width: 60px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            background-color: rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        /* Feedback Styles */
+        select.correct {
+            background-color: #c8e6c9; 
+            border-bottom: 2px solid var(--success);
+            color: #2e7d32;
+        }
+
+        select.incorrect {
+            background-color: #ffcdd2; 
+            border-bottom: 2px solid var(--error);
+            color: #c62828;
+        }
+
+        /* Übersetzung */
+        .translation {
+            display: block;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 6px;
+            font-style: italic;
+            border-top: 1px dotted #ccc;
+            padding-top: 4px;
+        }
+
+        /* Footer Controls */
+        .controls {
+            background-color: #f0f0f0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.1s;
+        }
+        
+        button:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #607d8b; }
+        .btn-solve { background-color: #128c7e; }
+
+        /* Mobile */
+        @media (max-width: 400px) {
+            .bubble { max-width: 95%; }
+            h1 { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Dialoge ergänzen</h1>
+        <p>Wählen Sie: <strong>есть</strong> (Existenz) oder <strong>–</strong> (leer/Beschreibung)?</p>
+    </header>
+
+    <div class="chat-area">
+
+        <!-- ================= DIALOG 1 ================= -->
+        <div class="date-separator">Dialog 1: Die Verabredung</div>
+
+        <div class="bubble received d1">
+            <span class="speaker-name">Anton</span>
+            Привет! У тебя завтра 
+            <select data-ans="есть" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            свободное время?
+            <span class="translation">Hast du morgen freie Zeit? (Existenz)</span>
+        </div>
+
+        <div class="bubble sent">
+            <span class="speaker-name">Ich (Lisa)</span>
+            Нет, завтра у меня 
+            <select data-ans="-" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            сложный экзамен.
+            <span class="translation">Morgen habe ich eine schwierige Prüfung. (Beschreibung)</span>
+        </div>
+
+        <div class="bubble received d1">
+            <span class="speaker-name">Anton</span>
+            Жаль. А сегодня? У тебя 
+            <select data-ans="есть" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            планы?
+            <span class="translation">Hast du Pläne? (Existenz)</span>
+        </div>
+
+        <div class="bubble sent">
+            <span class="speaker-name">Ich (Lisa)</span>
+            Нет. У меня 
+            <select data-ans="есть" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            идея! Поехали в кино.
+            <span class="translation">Ich habe eine Idee! (Existenz)</span>
+        </div>
+
+        <!-- ================= DIALOG 2 ================= -->
+        <div class="date-separator">Dialog 2: Im Geschäft</div>
+
+        <div class="bubble received d2">
+            <span class="speaker-name">Verkäufer</span>
+            Добрый день! У вас 
+            <select data-ans="есть" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            карта нашего магазина?
+            <span class="translation">Haben Sie die Karte unseres Ladens? (Besitz/Existenz)</span>
+        </div>
+
+        <div class="bubble sent">
+            <span class="speaker-name">Ich (Kunde)</span>
+            Нет. Но у меня 
+            <select data-ans="-" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            наличные деньги. Это нормально?
+            <span class="translation">Nein. Aber ich habe Bargeld. (Beschreibung der Zahlungsart)</span>
+        </div>
+
+        <div class="bubble received d2">
+            <span class="speaker-name">Verkäufer</span>
+            Да, конечно. У вас 
+            <select data-ans="-" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            крупные купюры или мелочь?
+            <span class="translation">Haben Sie große Scheine oder Kleingeld? (Beschreibung der Art)</span>
+        </div>
+
+        <div class="bubble sent">
+            <span class="speaker-name">Ich (Kunde)</span>
+            Мелочь. И ещё вопрос: у вас 
+            <select data-ans="есть" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            пакет?
+            <span class="translation">Kleingeld. Noch eine Frage: Haben Sie eine Tüte? (Existenz)</span>
+        </div>
+
+        <!-- ================= DIALOG 3 ================= -->
+        <div class="date-separator">Dialog 3: Familie & Charakter</div>
+
+        <div class="bubble received d3">
+            <span class="speaker-name">Max</span>
+            Анна, у тебя 
+            <select data-ans="есть" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            брат или сестра?
+            <span class="translation">Hast du einen Bruder oder eine Schwester? (Existenz)</span>
+        </div>
+
+        <div class="bubble sent">
+            <span class="speaker-name">Ich (Anna)</span>
+            Да, у меня 
+            <select data-ans="-" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            старший брат.
+            <span class="translation">Ja, ich habe einen älteren Bruder. (Beschreibung "älter")</span>
+        </div>
+
+        <div class="bubble received d3">
+            <span class="speaker-name">Max</span>
+            Какой он?
+            <span class="translation">Wie ist er?</span>
+        </div>
+
+        <div class="bubble sent">
+            <span class="speaker-name">Ich (Anna)</span>
+            Ох, у него 
+            <select data-ans="-" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            очень сложный характер.
+            <span class="translation">Oh, er hat einen sehr schwierigen Charakter. (Charakter/Eigenschaft)</span>
+        </div>
+
+        <div class="bubble received d3">
+            <span class="speaker-name">Max</span>
+            Понимаю. А у него 
+            <select data-ans="есть" onchange="check(this)">
+                <option value="">...</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            семья?
+            <span class="translation">Verstehe. Und hat er eine Familie? (Existenz)</span>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="btn-solve" onclick="showSolutions()">Lösungen</button>
+    </div>
+</div>
+
+<script>
+    function check(selectEl) {
+        const userValue = selectEl.value;
+        const correctValue = selectEl.getAttribute('data-ans');
+
+        // Styles zurücksetzen
+        selectEl.classList.remove('correct', 'incorrect');
+
+        if (userValue === "") return; // Keine Auswahl
+
+        if (userValue === correctValue) {
+            selectEl.classList.add('correct');
+        } else {
+            selectEl.classList.add('incorrect');
+        }
+    }
+
+    function resetAll() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(s => {
+            s.value = "";
+            s.classList.remove('correct', 'incorrect');
+        });
+    }
+
+    function showSolutions() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(s => {
+            s.value = s.getAttribute('data-ans');
+            // Visuelles Feedback auslösen
+            check(s);
+        });
+    }
+</script>
+
+</body>
+</html>
