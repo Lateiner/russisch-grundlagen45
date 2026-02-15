@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Frage und Antwort Matching</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --selected: #ff9800; /* Orange für Auswahl */
+            --success: #2e7d32; /* Grün für User-Erfolg */
+            --error: #c62828; /* Rot für Falsch */
+            --radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+
+        .instruction {
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary);
+        }
+
+        /* Spielbereich */
+        .game-area {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        /* Spalten */
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .column-header {
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Karten (Fragen und Antworten) */
+        .card {
+            background-color: white;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            min-height: 50px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            user-select: none;
+            position: relative;
+            font-size: 1rem;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: #bbb;
+            background-color: #fafafa;
+        }
+
+        /* Ausgewählt (beim Klicken) */
+        .card.selected {
+            border-color: var(--selected) !important;
+            background-color: #fff3e0 !important;
+            box-shadow: 0 0 8px rgba(255, 152, 0, 0.4);
+            font-weight: bold;
+            transform: scale(1.02);
+        }
+
+        /* Gelöst (Vom User richtig geklickt - Standard Grün) */
+        .card.solved {
+            border-color: var(--success);
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            cursor: default;
+            opacity: 0.9;
+            pointer-events: none; /* Nicht mehr klickbar */
+        }
+        
+        /* Häkchen nur anzeigen, wenn manuell gelöst oder wenn im Lösungsmode */
+        .card.solved::after {
+            content: "✔";
+            position: absolute;
+            right: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Fehler Animation */
+        .card.shake {
+            animation: shake 0.5s;
+            border-color: var(--error) !important;
+            background-color: #ffebee !important;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Mobile Anpassung */
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            .column {
+                width: 100%;
+            }
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #607d8b; }
+        .btn-solve { background-color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Frage & Antwort Matching</h1>
+        <p>Welche Antwort passt zu welcher Frage? Achten Sie auf das Wort <strong>есть</strong>!</p>
+    </header>
+
+    <div class="instruction">
+        <strong>Anleitung:</strong><br>
+        1. Klicken Sie auf eine <strong>Frage</strong> (linke Spalte).<br>
+        2. Klicken Sie auf die passende <strong>Antwort</strong> (rechte Spalte).<br>
+        <em>Tipp:</em> Frage nach Existenz („Hast du...?“) &#8594; Antwort oft mit „есть“.<br>
+        <em>Tipp:</em> Frage nach Eigenschaft („Wie ist...?“) &#8594; Antwort ohne „есть“.
+    </div>
+
+    <div class="game-area">
+        
+        <!-- Linke Spalte: Fragen -->
+        <div class="column" id="col-questions">
+            <div class="column-header">Frage</div>
+            <!-- Wird per JS gefüllt -->
+        </div>
+
+        <!-- Rechte Spalte: Antworten -->
+        <div class="column" id="col-answers">
+            <div class="column-header">Antwort</div>
+            <!-- Wird per JS gefüllt -->
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="initGame()">Neu starten</button>
+        <button class="btn-solve" onclick="autoSolve()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Daten: Die passenden Paare
+    const pairs = [
+        { id: 1, q: "У тебя есть ручка?", a: "Да, есть." },
+        { id: 2, q: "Какая у тебя ручка?", a: "У меня синяя ручка." },
+        { id: 3, q: "У него есть машина?", a: "Да, у него есть машина." },
+        { id: 4, q: "Какая у него машина?", a: "У него новая машина." },
+        { id: 5, q: "В городе есть парк?", a: "Да, в центре есть парк." },
+        { id: 6, q: "Какой там парк?", a: "Там красивый парк." },
+        { id: 7, q: "У вас есть дети?", a: "Да, у нас есть сын." },
+        { id: 8, q: "Сколько у вас детей?", a: "У нас два сына." },
+        { id: 9, q: "У неё есть кошка?", a: "Да, есть кошка." },
+        { id: 10, q: "Какая у неё кошка?", a: "У неё чёрная кошка." }
+    ];
+
+    // Farbpalette für die Lösungspaare (Hintergrund + Rahmen)
+    const distinctColors = [
+        { bg: '#ffebee', border: '#e57373' }, // Rot
+        { bg: '#e3f2fd', border: '#64b5f6' }, // Blau
+        { bg: '#f3e5f5', border: '#ba68c8' }, // Lila
+        { bg: '#e0f2f1', border: '#4db6ac' }, // Türkis
+        { bg: '#fff3e0', border: '#ffb74d' }, // Orange
+        { bg: '#f9fbe7', border: '#aed581' }, // Hellgrün
+        { bg: '#eceff1', border: '#90a4ae' }, // Grau-Blau
+        { bg: '#fff8e1', border: '#ffd54f' }, // Gelb
+        { bg: '#fce4ec', border: '#f06292' }, // Pink
+        { bg: '#e8f5e9', border: '#81c784' }  // Grün
+    ];
+
+    let selectedQuestion = null; // Speichert das Element der angeklickten Frage
+
+    function initGame() {
+        const qContainer = document.getElementById('col-questions');
+        const aContainer = document.getElementById('col-answers');
+        
+        qContainer.innerHTML = '<div class="column-header">Frage</div>';
+        aContainer.innerHTML = '<div class="column-header">Antwort</div>';
+        selectedQuestion = null;
+
+        // 1. Fragen rendern (Mischen)
+        let questions = [...pairs].sort(() => Math.random() - 0.5);
+        
+        questions.forEach(pair => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.textContent = pair.q;
+            card.dataset.id = pair.id;
+            card.onclick = () => selectQuestion(card);
+            qContainer.appendChild(card);
+        });
+
+        // 2. Antworten rendern (Mischen)
+        let answers = [...pairs].sort(() => Math.random() - 0.5);
+
+        answers.forEach(pair => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.textContent = pair.a;
+            card.dataset.id = pair.id; 
+            card.onclick = () => selectAnswer(card);
+            aContainer.appendChild(card);
+        });
+    }
+
+    function selectQuestion(card) {
+        if (card.classList.contains('solved')) return;
+        if (selectedQuestion) selectedQuestion.classList.remove('selected');
+        
+        selectedQuestion = card;
+        card.classList.add('selected');
+    }
+
+    function selectAnswer(answerCard) {
+        if (answerCard.classList.contains('solved')) return;
+
+        if (!selectedQuestion) {
+            shake(answerCard);
+            return;
+        }
+
+        const questionId = selectedQuestion.dataset.id;
+        const answerId = answerCard.dataset.id;
+
+        if (questionId === answerId) {
+            // MATCH!
+            markSolved(selectedQuestion, answerCard);
+            selectedQuestion = null;
+        } else {
+            // MISMATCH!
+            shake(selectedQuestion);
+            shake(answerCard);
+            selectedQuestion.classList.remove('selected');
+            selectedQuestion = null;
+        }
+    }
+
+    function markSolved(qCard, aCard) {
+        qCard.classList.remove('selected');
+        qCard.classList.add('solved');
+        aCard.classList.add('solved');
+        // Hier bleibt das Standard-Grün (CSS .solved), da es User-Erfolg ist.
+    }
+
+    function shake(element) {
+        element.classList.add('shake');
+        setTimeout(() => {
+            element.classList.remove('shake');
+        }, 500);
+    }
+
+    function autoSolve() {
+        // Zuerst alle existierenden Auswahl- und Shake-Klassen entfernen
+        const allCards = document.querySelectorAll('.card');
+        allCards.forEach(c => {
+            c.classList.remove('selected', 'shake', 'solved');
+            // Inline Styles (Farben) vom vorherigen Lösen entfernen
+            c.style.backgroundColor = '';
+            c.style.borderColor = '';
+            c.style.color = '';
+        });
+
+        // Nun durch die Daten iterieren und Farben zuweisen
+        pairs.forEach((pair, index) => {
+            // Farbe für dieses Paar auswählen (Modulo, falls mehr als 10 Paare wären)
+            const colorSet = distinctColors[index % distinctColors.length];
+
+            // Elemente im DOM finden
+            const qCard = document.querySelector(`#col-questions .card[data-id="${pair.id}"]`);
+            const aCard = document.querySelector(`#col-answers .card[data-id="${pair.id}"]`);
+
+            if (qCard && aCard) {
+                // Style anwenden
+                applyColorStyle(qCard, colorSet);
+                applyColorStyle(aCard, colorSet);
+            }
+        });
+    }
+
+    function applyColorStyle(element, colorSet) {
+        element.classList.add('solved'); // Damit sie nicht mehr klickbar sind
+        element.style.backgroundColor = colorSet.bg;
+        element.style.borderColor = colorSet.border;
+        element.style.color = "#333"; // Text dunkel lassen für Lesbarkeit auf Pastell
+    }
+
+    // Start beim Laden
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
