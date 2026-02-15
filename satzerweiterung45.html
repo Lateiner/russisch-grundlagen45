@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Das verschwundene "есть"</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --word-btn-bg: #e3f2fd;
+            --word-btn-text: #1565c0;
+            --success: #2e7d32;
+            --error: #c62828;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+
+        .instruction-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        /* Task Card Styles */
+        .task-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+            position: relative;
+        }
+
+        .original-sentence {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        
+        .original-sentence strong {
+            color: var(--error);
+            text-decoration: underline;
+        }
+
+        .task-prompt {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        /* Answer Line (Where words go) */
+        .answer-area {
+            min-height: 60px;
+            border-bottom: 2px solid #ccc;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            padding: 5px;
+            transition: border-color 0.3s;
+        }
+
+        .answer-area.completed {
+            border-color: var(--success);
+        }
+
+        /* Word Bank (Buttons) */
+        .word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .word-btn {
+            background-color: var(--word-btn-bg);
+            color: var(--word-btn-text);
+            border: 1px solid #bbdefb;
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .word-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .word-btn:active {
+            transform: scale(0.95);
+        }
+
+        .word-btn.used {
+            opacity: 0;
+            pointer-events: none;
+            /* Don't display:none so layout doesn't jump */
+        }
+
+        /* Feedback Animation Classes */
+        .shake {
+            animation: shake 0.5s;
+            background-color: var(--error) !important;
+            color: white !important;
+            border-color: var(--error) !important;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Feedback Message Area */
+        .feedback-msg {
+            height: 25px;
+            font-size: 0.9rem;
+            color: var(--error);
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feedback-msg.visible { opacity: 1; }
+
+        .success-checkmark {
+            display: none;
+            color: var(--success);
+            font-size: 1.5rem;
+            margin-left: 10px;
+            animation: popIn 0.5s;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .btn-reset, .btn-solve {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-reset { background-color: #607d8b; }
+        .btn-solve { background-color: var(--primary); }
+
+        /* Mobile Optimization */
+        @media (max-width: 600px) {
+            .word-btn { padding: 8px 14px; font-size: 1rem; }
+            .task-card { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Das verschwundene „есть“</h1>
+        <p>Bauen Sie den neuen Satz. Klicken Sie die Wörter in der <strong>richtigen Reihenfolge</strong> an.</p>
+    </header>
+
+    <div class="instruction-box">
+        <strong>Regel:</strong> Wenn wir ein Adjektiv (z.B. neu, groß, rot) hinzufügen, verschwindet das Wort <strong>есть</strong>!<br>
+        <em>Beispiel:</em> У меня есть кот + чёрный &#8594; У меня чёрный кот.
+    </div>
+
+    <div id="quiz-area">
+        <!-- Aufgaben werden hier per JS generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="renderTasks()">Alles zurücksetzen</button>
+        <button class="btn-solve" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Datenstruktur für die Aufgaben
+    const tasks = [
+        {
+            id: 1,
+            original: "У меня <strong>есть</strong> кот.",
+            add: "чёрный (schwarz)",
+            correctSentence: ["У", "меня", "чёрный", "кот."],
+            distractor: "есть"
+        },
+        {
+            id: 2,
+            original: "У него <strong>есть</strong> машина.",
+            add: "новая (neu)",
+            correctSentence: ["У", "него", "новая", "машина."],
+            distractor: "есть"
+        },
+        {
+            id: 3,
+            original: "У нас <strong>есть</strong> дом.",
+            add: "большой (groß)",
+            correctSentence: ["У", "нас", "большой", "дом."],
+            distractor: "есть"
+        },
+        {
+            id: 4,
+            original: "У тебя <strong>есть</strong> ручка.",
+            add: "красная (rot)",
+            correctSentence: ["У", "тебя", "красная", "ручка."],
+            distractor: "есть"
+        },
+        {
+            id: 5,
+            original: "В городе <strong>есть</strong> театр.",
+            add: "старый (alt)",
+            correctSentence: ["В", "городе", "старый", "театр."],
+            distractor: "есть"
+        },
+        {
+            id: 6,
+            original: "У них <strong>есть</strong> собака.",
+            add: "добрая (lieb/gut)",
+            correctSentence: ["У", "них", "добрая", "собака."],
+            distractor: "есть"
+        },
+        {
+            id: 7,
+            original: "У мамы <strong>есть</strong> сумка.",
+            add: "дорогая (teuer)",
+            correctSentence: ["У", "мамы", "дорогая", "сумка."],
+            distractor: "есть"
+        },
+        {
+            id: 8,
+            original: "В парке <strong>есть</strong> дерево.",
+            add: "высокое (hoch)",
+            correctSentence: ["В", "парке", "высокое", "дерево."],
+            distractor: "есть"
+        },
+        {
+            id: 9,
+            original: "У него <strong>есть</strong> проблема.",
+            add: "сложная (kompliziert)",
+            correctSentence: ["У", "него", "сложная", "проблема."],
+            distractor: "есть"
+        },
+        {
+            id: 10,
+            original: "У меня <strong>есть</strong> друг.",
+            add: "русский (russisch)",
+            correctSentence: ["У", "меня", "русский", "друг."],
+            distractor: "есть"
+        }
+    ];
+
+    // Status-Speicher für jede Aufgabe (wie viele Wörter schon richtig geklickt wurden)
+    let progress = {};
+
+    function renderTasks() {
+        const container = document.getElementById('quiz-area');
+        container.innerHTML = '';
+        progress = {};
+
+        tasks.forEach((task, index) => {
+            progress[task.id] = 0; // Index des nächsten erwarteten Wortes
+
+            // Hauptkarte
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${task.id}`;
+
+            // Inhalt
+            // 1. Originalsatz + Anweisung
+            const originalDiv = document.createElement('div');
+            originalDiv.innerHTML = `<span class="original-sentence">${index + 1}. ${task.original}</span>`;
+            
+            const promptDiv = document.createElement('div');
+            promptDiv.className = 'task-prompt';
+            promptDiv.textContent = `+ Hinzufügen: ${task.add}`;
+
+            // 2. Antwortbereich
+            const answerArea = document.createElement('div');
+            answerArea.className = 'answer-area';
+            answerArea.id = `answer-${task.id}`;
+
+            // Checkmark für Erfolg (wird später hinzugefügt)
+            const check = document.createElement('span');
+            check.className = 'success-checkmark';
+            check.id = `check-${task.id}`;
+            check.innerHTML = '✔ Richtig!';
+
+            // 3. Feedback Nachricht (Fehler)
+            const feedbackMsg = document.createElement('div');
+            feedbackMsg.className = 'feedback-msg';
+            feedbackMsg.id = `msg-${task.id}`;
+
+            // 4. Wortbank (Buttons)
+            const wordBank = document.createElement('div');
+            wordBank.className = 'word-bank';
+            
+            // Liste aller Wörter (Korrekte + Distraktor)
+            let allWords = [...task.correctSentence];
+            if(task.distractor) allWords.push(task.distractor);
+
+            // Mischen
+            allWords = allWords.sort(() => Math.random() - 0.5);
+
+            allWords.forEach(word => {
+                const btn = document.createElement('button');
+                btn.className = 'word-btn';
+                btn.textContent = word;
+                // Click Handler
+                btn.onclick = () => handleWordClick(task.id, word, btn);
+                wordBank.appendChild(btn);
+            });
+
+            // Zusammenbauen
+            card.appendChild(originalDiv);
+            card.appendChild(promptDiv);
+            card.appendChild(answerArea);
+            card.appendChild(feedbackMsg); // Nachricht unter der Linie
+            card.appendChild(wordBank);
+
+            container.appendChild(card);
+        });
+    }
+
+    function handleWordClick(taskId, clickedWord, btnElement) {
+        const task = tasks.find(t => t.id === taskId);
+        const currentStep = progress[taskId];
+
+        // Wenn Aufgabe schon gelöst, nichts tun
+        if (currentStep >= task.correctSentence.length) return;
+
+        const expectedWord = task.correctSentence[currentStep];
+
+        const msgBox = document.getElementById(`msg-${taskId}`);
+
+        // 1. Check: Ist es das verbotene Wort "есть"?
+        if (clickedWord === task.distractor) {
+            triggerError(btnElement, msgBox, "Achtung! „есть“ muss wegfallen!");
+            return;
+        }
+
+        // 2. Check: Ist es das richtige nächste Wort?
+        if (clickedWord === expectedWord) {
+            // RICHTIG
+            acceptWord(taskId, clickedWord, btnElement);
+        } else {
+            // FALSCHE REIHENFOLGE
+            triggerError(btnElement, msgBox, "Falsche Reihenfolge!");
+        }
+    }
+
+    function triggerError(btn, msgBox, text) {
+        // Animation
+        btn.classList.add('shake');
+        msgBox.textContent = text;
+        msgBox.classList.add('visible');
+
+        // Animation und Text entfernen nach kurzer Zeit
+        setTimeout(() => {
+            btn.classList.remove('shake');
+            msgBox.classList.remove('visible');
+        }, 1000);
+    }
+
+    function acceptWord(taskId, word, btn) {
+        const task = tasks.find(t => t.id === taskId);
+        
+        // Button ausblenden (visuell "benutzt")
+        btn.classList.add('used');
+
+        // Wort in die Antwortzeile schieben
+        const answerArea = document.getElementById(`answer-${taskId}`);
+        
+        // Erstellen eines "Blocks" in der Antwortzeile
+        const wordSpan = document.createElement('span');
+        wordSpan.textContent = word;
+        wordSpan.style.marginRight = "5px";
+        wordSpan.style.fontSize = "1.2rem";
+        wordSpan.style.animation = "popIn 0.3s";
+        answerArea.appendChild(wordSpan);
+
+        // Fortschritt erhöhen
+        progress[taskId]++;
+
+        // Check ob fertig
+        if (progress[taskId] === task.correctSentence.length) {
+            finishTask(taskId);
+        }
+    }
+
+    function finishTask(taskId) {
+        const answerArea = document.getElementById(`answer-${taskId}`);
+        answerArea.classList.add('completed');
+        
+        const check = document.createElement('span');
+        check.className = 'success-checkmark';
+        check.style.display = 'inline-block';
+        check.textContent = '✔ Super!';
+        answerArea.appendChild(check);
+    }
+
+    function showAllSolutions() {
+        // Reset zuerst, um sauberen Zustand zu haben
+        renderTasks();
+
+        // Alle Aufgaben automatisch ausfüllen
+        tasks.forEach(task => {
+            const answerArea = document.getElementById(`answer-${task.id}`);
+            const wordBank = document.querySelector(`#card-${task.id} .word-bank`);
+            
+            // Wortbank leeren/verstecken
+            wordBank.style.display = 'none';
+
+            // Text direkt setzen
+            answerArea.innerHTML = '';
+            task.correctSentence.forEach(w => {
+                const s = document.createElement('span');
+                s.textContent = w + " ";
+                s.style.fontSize = "1.2rem";
+                s.style.color = "#2e7d32";
+                s.style.fontWeight = "bold";
+                answerArea.appendChild(s);
+            });
+
+            // Als fertig markieren
+            answerArea.classList.add('completed');
+        });
+    }
+
+    // Init
+    window.onload = renderTasks;
+
+</script>
+
+</body>
+</html>
