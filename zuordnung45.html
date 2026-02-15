@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Fokus bestimmen</title>
+    <style>
+        :root {
+            --primary: #3f51b5; /* Indigo */
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #333;
+            --btn-exist: #0288d1; /* Blau für Existenz */
+            --btn-desc: #7b1fa2; /* Lila für Beschreibung */
+            --success: #2e7d32;
+            --error: #c62828;
+            --radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+        
+        .instruction {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary);
+        }
+
+        /* Aufgaben-Layout */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .task-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.2s;
+        }
+
+        .sentence {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .translation {
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        /* Die zwei Entscheidungs-Buttons */
+        .options-grid {
+            display: flex;
+            gap: 15px;
+        }
+
+        .focus-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.9;
+        }
+
+        .focus-btn:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Button A: Existenz */
+        .btn-existence {
+            background-color: var(--btn-exist);
+        }
+
+        /* Button B: Beschreibung */
+        .btn-description {
+            background-color: var(--btn-desc);
+        }
+
+        /* Feedback-Zustände */
+        .focus-btn.correct {
+            background-color: var(--success) !important;
+            border-color: var(--success);
+            box-shadow: 0 0 10px rgba(46, 125, 50, 0.4);
+        }
+        .focus-btn.correct::after {
+            content: "✓ Richtig";
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .focus-btn.wrong {
+            background-color: var(--error) !important;
+            border-color: var(--error);
+            opacity: 0.6;
+        }
+        .focus-btn.wrong::after {
+            content: "✗ Falsch";
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .focus-btn.dimmed {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Erklärungstext */
+        .explanation {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+            color: #555;
+            display: none;
+        }
+        .explanation.visible { display: block; animation: fadein 0.5s; }
+
+        @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .options-grid {
+                flex-direction: column;
+            }
+            .sentence { font-size: 1.1rem; }
+        }
+
+        /* Footer Controls */
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-reset { background-color: #607d8b; color: white; }
+        .btn-solve { background-color: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Russisch: Worauf liegt der Fokus?</h1>
+        <p>Entscheiden Sie anhand des Satzes, ob die reine <strong>Existenz</strong> (Besitz/Dasein) oder eine nähere <strong>Beschreibung</strong> (Eigenschaft/Qualität) betont wird.</p>
+    </header>
+
+    <div class="instruction">
+        <strong>Tipp:</strong><br>
+        Fokus <strong>Existenz</strong> = Wir benutzen „есть“.<br>
+        Fokus <strong>Beschreibung</strong> (Adjektive, Körperteile, Krankheiten) = Wir benutzen <em>kein</em> „есть“.
+    </div>
+
+    <div class="task-list">
+
+        <!-- Satz 1 -->
+        <div class="task-card" id="t1">
+            <div class="sentence">1. У меня есть машина.</div>
+            <div class="translation">Ich habe ein Auto.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(1, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(1, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Richtig! „есть“ steht im Satz -> Wir betonen, dass das Auto existiert (nicht „kein Auto“).</div>
+        </div>
+
+        <!-- Satz 2 -->
+        <div class="task-card" id="t2">
+            <div class="sentence">2. У меня красная машина.</div>
+            <div class="translation">Ich habe ein rotes Auto.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(2, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(2, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Korrekt! Das Adjektiv „красная“ (rot) beschreibt das Auto. Der Fokus liegt auf der Farbe, nicht auf dem Besitz.</div>
+        </div>
+
+        <!-- Satz 3 -->
+        <div class="task-card" id="t3">
+            <div class="sentence">3. У него голубые глаза.</div>
+            <div class="translation">Er hat blaue Augen.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(3, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(3, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Richtig! Wir beschreiben einen Körperteil (Farbe der Augen). Kein „есть“.</div>
+        </div>
+
+        <!-- Satz 4 -->
+        <div class="task-card" id="t4">
+            <div class="sentence">4. У него есть татуировка.</div>
+            <div class="translation">Er hat eine Tätowierung.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(4, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(4, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Genau! Ein Tattoo ist eine Besonderheit (kein Standard-Körperteil). Wir betonen die Existenz mit „есть“.</div>
+        </div>
+
+        <!-- Satz 5 -->
+        <div class="task-card" id="t5">
+            <div class="sentence">5. В городе есть театр.</div>
+            <div class="translation">In der Stadt gibt es ein Theater.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(5, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(5, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Korrekt. Wir informieren darüber, dass ein Theater vorhanden ist.</div>
+        </div>
+
+        <!-- Satz 6 -->
+        <div class="task-card" id="t6">
+            <div class="sentence">6. В городе старый театр.</div>
+            <div class="translation">In der Stadt ist ein altes Theater.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(6, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(6, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Richtig. „Старый“ (alt) beschreibt das Theater näher. Fokus auf der Eigenschaft.</div>
+        </div>
+
+        <!-- Satz 7 -->
+        <div class="task-card" id="t7">
+            <div class="sentence">7. У девушки грипп.</div>
+            <div class="translation">Das Mädchen hat Grippe.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(7, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(7, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Korrekt. Bei Krankheiten (Zuständen) benutzen wir kein „есть“. Wir ordnen dies hier der Kategorie „Beschreibung/Zustand“ zu.</div>
+        </div>
+
+        <!-- Satz 8 -->
+        <div class="task-card" id="t8">
+            <div class="sentence">8. У меня есть время.</div>
+            <div class="translation">Ich habe Zeit.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(8, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(8, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Richtig. „Ich habe Zeit“ = Die Zeit existiert für mich.</div>
+        </div>
+
+        <!-- Satz 9 -->
+        <div class="task-card" id="t9">
+            <div class="sentence">9. У меня сложный характер.</div>
+            <div class="translation">Ich habe einen schwierigen Charakter.</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(9, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(9, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Genau. Charaktereigenschaften (сложный) sind Beschreibungen. Kein „есть“.</div>
+        </div>
+
+        <!-- Satz 10 -->
+        <div class="task-card" id="t10">
+            <div class="sentence">10. У тебя есть брат?</div>
+            <div class="translation">Hast du einen Bruder?</div>
+            <div class="options-grid">
+                <button class="focus-btn btn-existence" onclick="check(10, 'exist')">Fokus: Existenz / Besitz</button>
+                <button class="focus-btn btn-description" onclick="check(10, 'desc')">Fokus: Eigenschaft / Beschreibung</button>
+            </div>
+            <div class="explanation">Richtig. Wir fragen nach der Existenz eines Bruders (ja oder nein?).</div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showSolutions()">Lösungen anzeigen</button>
+    </div>
+
+</div>
+
+<script>
+    // Definition der richtigen Antworten
+    // exist = Existenz (Button 1), desc = Beschreibung (Button 2)
+    const answers = {
+        1: 'exist',
+        2: 'desc',
+        3: 'desc',
+        4: 'exist',
+        5: 'exist',
+        6: 'desc',
+        7: 'desc', // Krankheit wird als Zustand/Beschreibung gewertet (kein есть)
+        8: 'exist',
+        9: 'desc',
+        10: 'exist'
+    };
+
+    function check(id, userChoice) {
+        const card = document.getElementById('t' + id);
+        const correctChoice = answers[id];
+        
+        // Buttons holen
+        const btnExist = card.querySelector('.btn-existence');
+        const btnDesc = card.querySelector('.btn-description');
+        const expl = card.querySelector('.explanation');
+
+        // Reset Styles first (falls User umentscheidet)
+        btnExist.className = "focus-btn btn-existence";
+        btnDesc.className = "focus-btn btn-description";
+
+        // Logic
+        if (userChoice === correctChoice) {
+            // Richtig gewählt
+            if (userChoice === 'exist') {
+                btnExist.classList.add('correct');
+                btnDesc.classList.add('dimmed');
+            } else {
+                btnDesc.classList.add('correct');
+                btnExist.classList.add('dimmed');
+            }
+        } else {
+            // Falsch gewählt
+            if (userChoice === 'exist') {
+                btnExist.classList.add('wrong');
+            } else {
+                btnDesc.classList.add('wrong');
+            }
+        }
+
+        // Erklärung immer anzeigen nach Klick
+        expl.classList.add('visible');
+    }
+
+    function resetAll() {
+        for (let i = 1; i <= 10; i++) {
+            const card = document.getElementById('t' + i);
+            const btns = card.querySelectorAll('.focus-btn');
+            const expl = card.querySelector('.explanation');
+            
+            btns.forEach(b => {
+                b.classList.remove('correct', 'wrong', 'dimmed');
+            });
+            expl.classList.remove('visible');
+        }
+    }
+
+    function showSolutions() {
+        // Erst alles resetten
+        resetAll();
+
+        for (let i = 1; i <= 10; i++) {
+            const correctChoice = answers[i];
+            const card = document.getElementById('t' + i);
+            const expl = card.querySelector('.explanation');
+
+            if (correctChoice === 'exist') {
+                const btn = card.querySelector('.btn-existence');
+                btn.classList.add('correct');
+                card.querySelector('.btn-description').classList.add('dimmed');
+            } else {
+                const btn = card.querySelector('.btn-description');
+                btn.classList.add('correct');
+                card.querySelector('.btn-existence').classList.add('dimmed');
+            }
+            expl.classList.add('visible');
+        }
+    }
+</script>
+
+</body>
+</html>
