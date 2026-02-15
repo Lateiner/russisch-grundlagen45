@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Bildbeschreibung (6 Charaktere)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --accent: #ff9800;
+            --success: #2e7d32;
+            --error: #c62828;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+
+        .instruction {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        /* Character Card Layout */
+        .char-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Linke Seite: Das Bild/Emoji */
+        .char-visual {
+            background-color: #e8eaf6;
+            width: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem; /* Großes Emoji */
+            flex-shrink: 0;
+            border-right: 1px solid #eee;
+            position: relative;
+        }
+
+        .char-visual span {
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+            transition: transform 0.3s;
+        }
+
+        .char-card:hover .char-visual span {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        /* Rechte Seite: Die Sätze */
+        .char-content {
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .char-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sentence-row {
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .sentence-row label {
+            margin-right: 10px;
+        }
+
+        /* Dropdowns */
+        select {
+            appearance: none;
+            background-color: #fff;
+            border: 2px solid #ccc;
+            padding: 5px 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: #333;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            text-align: center;
+            min-width: 80px;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Feedback Styles */
+        select.correct {
+            background-color: #e8f5e9;
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        select.incorrect {
+            background-color: #ffebee;
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .hint {
+            font-size: 0.85rem;
+            color: #777;
+            margin-left: 10px;
+            font-style: italic;
+        }
+
+        /* Footer Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            margin-bottom: 50px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.1s;
+        }
+        
+        button:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #607d8b; }
+        .btn-solve { background-color: var(--primary); }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .char-card {
+                flex-direction: column;
+            }
+            .char-visual {
+                width: 100%;
+                height: 120px;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+            .sentence-row {
+                font-size: 1rem;
+                padding-bottom: 10px;
+                border-bottom: 1px dotted #eee;
+            }
+            .hint {
+                display: block;
+                width: 100%;
+                margin-left: 0;
+                margin-top: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Bildbeschreibung</h1>
+        <p>Was <strong>hat</strong> die Person (Gegenstände) und wie <strong>sieht sie aus</strong> (Körperteile)?</p>
+    </header>
+
+    <div class="instruction">
+        <strong>Regel:</strong><br>
+        &#128092; Gegenstand/Besitz = <strong>есть</strong><br>
+        &#128064; Körperteil + Adjektiv (Beschreibung) = <strong>–</strong> (nichts)
+    </div>
+
+    <!-- Charakter 1: Der Detektiv -->
+    <div class="char-card">
+        <div class="char-visual">
+            <span>🕵️‍♂️</span>
+        </div>
+        <div class="char-content">
+            <div class="char-title">Der Detektiv</div>
+            
+            <div class="sentence-row">
+                1. У него 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                шляпа.
+                <span class="hint">(Hut -> Gegenstand)</span>
+            </div>
+
+            <div class="sentence-row">
+                2. У него 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                тёмные глаза.
+                <span class="hint">(Dunkle Augen -> Beschreibung)</span>
+            </div>
+
+            <div class="sentence-row">
+                3. У него 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                пальто.
+                <span class="hint">(Mantel -> Gegenstand)</span>
+            </div>
+
+            <div class="sentence-row">
+                4. У него 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                серьёзное лицо.
+                <span class="hint">(Ernstes Gesicht -> Beschreibung)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charakter 2: Die Studentin -->
+    <div class="char-card">
+        <div class="char-visual">
+            <span>👩‍🎓</span>
+        </div>
+        <div class="char-content">
+            <div class="char-title">Die Studentin</div>
+            
+            <div class="sentence-row">
+                1. У неё 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                светлые волосы.
+                <span class="hint">(Helles Haar -> Beschreibung)</span>
+            </div>
+
+            <div class="sentence-row">
+                2. У неё 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                диплом.
+                <span class="hint">(Diplom -> Gegenstand)</span>
+            </div>
+
+            <div class="sentence-row">
+                3. У неё 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                очки.
+                <span class="hint">(Brille -> Gegenstand)</span>
+            </div>
+
+            <div class="sentence-row">
+                4. У неё 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                красивая улыбка.
+                <span class="hint">(Schönes Lächeln -> Beschreibung)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charakter 3: Der Künstler -->
+    <div class="char-card">
+        <div class="char-visual">
+            <span>🎨</span>
+        </div>
+        <div class="char-content">
+            <div class="char-title">Der Künstler</div>
+            
+            <div class="sentence-row">
+                1. У него 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                кисть.
+                <span class="hint">(Pinsel -> Gegenstand)</span>
+            </div>
+
+            <div class="sentence-row">
+                2. У него 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                длинные пальцы.
+                <span class="hint">(Lange Finger -> Beschreibung)</span>
+            </div>
+
+            <div class="sentence-row">
+                3. У него 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                татуировка.
+                <span class="hint">(Tattoo -> Besonderheit/Existenz)</span>
+            </div>
+
+            <div class="sentence-row">
+                4. У него 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                талант.
+                <span class="hint">(Talent -> Eigenschaft)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charakter 4: Der Sportler (NEU) -->
+    <div class="char-card">
+        <div class="char-visual">
+            <span>🏃‍♂️</span>
+        </div>
+        <div class="char-content">
+            <div class="char-title">Der Sportler</div>
+            
+            <div class="sentence-row">
+                1. У него 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                сильные руки.
+                <span class="hint">(Starke Arme -> Körperteil)</span>
+            </div>
+
+            <div class="sentence-row">
+                2. У него 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                мяч.
+                <span class="hint">(Ball -> Gegenstand)</span>
+            </div>
+
+            <div class="sentence-row">
+                3. У него 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                короткие волосы.
+                <span class="hint">(Kurzes Haar -> Beschreibung)</span>
+            </div>
+
+            <div class="sentence-row">
+                4. У него 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                медаль.
+                <span class="hint">(Medaille -> Gegenstand)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charakter 5: Der Arzt (NEU) -->
+    <div class="char-card">
+        <div class="char-visual">
+            <span>👨‍⚕️</span>
+        </div>
+        <div class="char-content">
+            <div class="char-title">Der Arzt</div>
+            
+            <div class="sentence-row">
+                1. У него 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                белый халат.
+                <span class="hint">(Weißer Kittel -> Gegenstand/Besitz)</span>
+            </div>
+
+            <div class="sentence-row">
+                2. У него 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                умное лицо.
+                <span class="hint">(Kluges Gesicht -> Beschreibung)</span>
+            </div>
+
+            <div class="sentence-row">
+                3. У него 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                стетоскоп.
+                <span class="hint">(Stethoskop -> Gegenstand)</span>
+            </div>
+
+            <div class="sentence-row">
+                4. У него 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                добрая улыбка.
+                <span class="hint">(Nettes Lächeln -> Beschreibung)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charakter 6: Die Katze (NEU) -->
+    <div class="char-card">
+        <div class="char-visual">
+            <span>🐈</span>
+        </div>
+        <div class="char-content">
+            <div class="char-title">Die Katze</div>
+            
+            <div class="sentence-row">
+                1. У неё 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                зелёные глаза.
+                <span class="hint">(Grüne Augen -> Körperteil)</span>
+            </div>
+
+            <div class="sentence-row">
+                2. У неё 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                вкусный корм.
+                <span class="hint">(Leckeres Futter -> Besitz)</span>
+            </div>
+
+            <div class="sentence-row">
+                3. У неё 
+                <select data-ans="-" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                длинные усы.
+                <span class="hint">(Lange Schnurrhaare -> Körperteil)</span>
+            </div>
+
+            <div class="sentence-row">
+                4. У неё 
+                <select data-ans="есть" onchange="check(this)">
+                    <option value="">...</option>
+                    <option value="есть">есть</option>
+                    <option value="-">–</option>
+                </select>
+                свой домик.
+                <span class="hint">(Eigenes Häuschen -> Gegenstand)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="btn-solve" onclick="showSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    function check(selectEl) {
+        const userValue = selectEl.value;
+        const correctValue = selectEl.getAttribute('data-ans');
+
+        // Styles zurücksetzen
+        selectEl.classList.remove('correct', 'incorrect');
+
+        if (userValue === "") return; // Keine Auswahl
+
+        if (userValue === correctValue) {
+            selectEl.classList.add('correct');
+        } else {
+            selectEl.classList.add('incorrect');
+        }
+    }
+
+    function resetAll() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(s => {
+            s.value = "";
+            s.classList.remove('correct', 'incorrect');
+        });
+    }
+
+    function showSolutions() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(s => {
+            s.value = s.getAttribute('data-ans');
+            // Visuelles Feedback auslösen
+            check(s);
+        });
+    }
+</script>
+
+</body>
+</html>
