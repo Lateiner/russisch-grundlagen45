@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Sortieraufgabe (Drag & Drop)</title>
+    <!-- WICHTIG: Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #333;
+            --success-bg: #d4edda;
+            --success-border: #28a745;
+            --error-bg: #f8d7da;
+            --error-border: #dc3545;
+            --radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            touch-action: pan-y; /* Erlaubt vertikales Scrollen, blockiert nicht alles */
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+        
+        .instruction {
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Drag & Drop Layout */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Container für die Wörter (Quelle) */
+        .source-container {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 2px dashed #90caf9;
+            min-height: 120px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Die zwei Zielspalten */
+        .drop-zones {
+            display: flex;
+            gap: 20px;
+        }
+
+        .column {
+            flex: 1;
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            border: 2px solid #ddd;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.3s;
+        }
+
+        .column.drag-over {
+            border-color: var(--primary);
+            background-color: #f0f4ff;
+        }
+
+        .column h3 {
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: var(--primary);
+        }
+
+        /* Die ziehbaren Wörter */
+        .draggable-item {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: grab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.2s;
+            user-select: none;
+            /* Wichtig für Touch: */
+            touch-action: none; 
+        }
+
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        /* Feedback-Styles (Sofort) */
+        .draggable-item.correct {
+            background-color: var(--success-bg);
+            border-color: var(--success-border);
+            color: #155724;
+        }
+        
+        .draggable-item.correct::after {
+            content: " ✓";
+            font-weight: bold;
+        }
+
+        .draggable-item.wrong {
+            background-color: var(--error-bg);
+            border-color: var(--error-border);
+            color: #721c24;
+        }
+
+        .draggable-item.wrong::after {
+            content: " ✗";
+            font-weight: bold;
+        }
+
+        /* Übersetzung kleiner darunter */
+        .sub-text {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-reset { background-color: #607d8b; color: white; }
+        .btn-solve { background-color: var(--primary); color: white; }
+
+        /* Mobile Anpassung */
+        @media (max-width: 700px) {
+            .drop-zones {
+                flex-direction: column;
+            }
+            .column {
+                min-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Russisch: Sortieraufgabe</h1>
+        <p>Benutzen wir in diesem Kontext <strong>есть</strong> oder <strong>nicht</strong>?</p>
+    </header>
+
+    <div class="instruction">
+        Ziehen Sie die Wörter in die richtige Spalte.<br>
+        <strong>Links:</strong> Sätze mit „есть“ (Existenz/Besitz/Besonderheit).<br>
+        <strong>Rechts:</strong> Sätze ohne „есть“ (Körperteile/Krankheit/Eigenschaften).
+    </div>
+
+    <div class="game-area">
+        
+        <!-- Quelle -->
+        <div class="source-container" id="source" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <!-- Items werden hier per JS eingefügt oder stehen hier -->
+            
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item1" data-category="yes">
+                татуировка
+                <span class="sub-text">(Tattoo)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item2" data-category="no">
+                волосы
+                <span class="sub-text">(Haare)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item3" data-category="no">
+                грипп
+                <span class="sub-text">(Grippe)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item4" data-category="yes">
+                машина
+                <span class="sub-text">(Auto)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item5" data-category="yes">
+                вопрос
+                <span class="sub-text">(Frage)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item6" data-category="no">
+                хорошее настроение
+                <span class="sub-text">(Gute Laune)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item7" data-category="no">
+                голубые глаза
+                <span class="sub-text">(Blaue Augen)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item8" data-category="yes">
+                время
+                <span class="sub-text">(Zeit)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item9" data-category="no">
+                сложный характер
+                <span class="sub-text">(Schwieriger Charakter)</span>
+            </div>
+
+            <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="item10" data-category="yes">
+                билет
+                <span class="sub-text">(Ticket)</span>
+            </div>
+
+        </div>
+
+        <!-- Zielspalten -->
+        <div class="drop-zones">
+            
+            <!-- Spalte JA -->
+            <div class="column" id="zone-yes" data-type="yes" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Mit „есть“ <br><small>(Existenz / Besitz / Besonderheit)</small></h3>
+            </div>
+
+            <!-- Spalte NEIN -->
+            <div class="column" id="zone-no" data-type="no" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Ohne „есть“ <br><small>(Beschreibung / Körperteil / Krankheit)</small></h3>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetGame()">Zurücksetzen</button>
+        <button class="btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+
+</div>
+
+<script>
+    function allowDrop(ev) {
+        ev.preventDefault();
+        // Visuelles Feedback für Dropzone
+        let target = ev.target;
+        // Hochbubblen zum Container
+        while (target && !target.classList.contains('column') && !target.classList.contains('source-container')) {
+            target = target.parentElement;
+        }
+        if (target && target.classList.contains('column')) {
+            target.classList.add('drag-over');
+        }
+    }
+
+    /* Entfernt den drag-over Effekt, wenn man die Zone verlässt (optional, hier vereinfacht im drop) */
+    
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+        // Für Touch-Geräte und bessere UX
+        ev.target.style.opacity = "0.5";
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const data = ev.dataTransfer.getData("text");
+        const draggedElement = document.getElementById(data);
+        
+        // Reset Opacity
+        if(draggedElement) draggedElement.style.opacity = "1";
+
+        // Ziel finden (Bubbling handhaben, falls man auf den Text oder h3 droppt)
+        let target = ev.target;
+        while (target && !target.classList.contains('column') && !target.classList.contains('source-container')) {
+            target = target.parentElement;
+        }
+
+        // Styles für Dropzone entfernen
+        document.querySelectorAll('.column').forEach(col => col.classList.remove('drag-over'));
+
+        if (target) {
+            target.appendChild(draggedElement);
+            
+            // Sofortiges Feedback prüfen
+            if (target.classList.contains('column')) {
+                const zoneType = target.getAttribute('data-type');
+                const itemType = draggedElement.getAttribute('data-category');
+
+                if (zoneType === itemType) {
+                    draggedElement.classList.add('correct');
+                    draggedElement.classList.remove('wrong');
+                } else {
+                    draggedElement.classList.add('wrong');
+                    draggedElement.classList.remove('correct');
+                }
+            } else {
+                // Wenn zurück in Source gedroppt wird, Klassen entfernen
+                draggedElement.classList.remove('correct', 'wrong');
+            }
+        }
+    }
+
+    // Event Listener für DragEnd, um Opacity sicher zurückzusetzen falls Drop fehlschlägt
+    document.addEventListener("dragend", function(event) {
+        if(event.target.classList.contains("draggable-item")) {
+            event.target.style.opacity = "1";
+            document.querySelectorAll('.column').forEach(col => col.classList.remove('drag-over'));
+        }
+    });
+
+    function resetGame() {
+        const source = document.getElementById('source');
+        const items = document.querySelectorAll('.draggable-item');
+        
+        // Elemente mischen (optional) und zurückschieben
+        const itemsArray = Array.from(items);
+        itemsArray.sort(() => Math.random() - 0.5);
+
+        itemsArray.forEach(item => {
+            item.classList.remove('correct', 'wrong');
+            item.style.opacity = "1";
+            source.appendChild(item);
+        });
+    }
+
+    function showSolution() {
+        const zoneYes = document.getElementById('zone-yes');
+        const zoneNo = document.getElementById('zone-no');
+        const items = document.querySelectorAll('.draggable-item');
+
+        items.forEach(item => {
+            const type = item.getAttribute('data-category');
+            item.classList.remove('wrong');
+            item.classList.add('correct');
+            
+            if (type === 'yes') {
+                zoneYes.appendChild(item);
+            } else {
+                zoneNo.appendChild(item);
+            }
+        });
+    }
+
+    // Beim Laden einmal mischen
+    window.onload = resetGame;
+</script>
+
+</body>
+</html>
