@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Übersetzung & Kontrast (8 Paare)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --btn-bg: #e8eaf6;
+            --btn-text: #283593;
+            --success: #2e7d32;
+            --error: #c62828;
+            --radius: 10px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+
+        .instruction {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        /* Container für ein Aufgabenpaar */
+        .contrast-pair {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 40px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .pair-title {
+            text-align: center;
+            font-weight: bold;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* Einzelner Satz-Builder */
+        .sentence-task {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: var(--radius);
+            border-left: 4px solid #ccc;
+            transition: border-color 0.3s;
+        }
+
+        .sentence-task.completed {
+            border-left-color: var(--success);
+            background-color: #f1f8e9;
+        }
+
+        .german-sentence {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .german-sentence span {
+            font-weight: normal;
+            font-size: 0.9rem;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        /* Bereich wo die Wörter landen */
+        .target-area {
+            min-height: 50px;
+            border-bottom: 2px solid #bbb;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .target-word {
+            font-size: 1.1rem;
+            color: var(--success);
+            font-weight: bold;
+            animation: slideIn 0.3s ease-out;
+            padding: 5px 10px;
+            background: rgba(46, 125, 50, 0.1);
+            border-radius: 4px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Wortbank */
+        .word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .word-btn {
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            border: 1px solid #c5cae9;
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            user-select: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+        }
+
+        .word-btn:hover {
+            transform: translateY(-2px);
+            background-color: #c5cae9;
+        }
+
+        .word-btn.used {
+            opacity: 0; 
+            pointer-events: none;
+        }
+
+        /* Feedback Animationen */
+        .shake {
+            animation: shake 0.5s;
+            background-color: var(--error) !important;
+            color: white !important;
+            border-color: var(--error) !important;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .feedback-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+        .feedback-toast.visible { opacity: 1; }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            margin-bottom: 50px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-reset { background-color: #607d8b; }
+        .btn-solve { background-color: var(--primary); }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .word-btn { padding: 6px 12px; font-size: 0.95rem; }
+            .contrast-pair { padding: 10px; }
+            .sentence-task { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Übersetzung & Kontrast</h1>
+        <p>Bauen Sie die russischen Sätze. Achten Sie auf den Unterschied!</p>
+    </header>
+
+    <div class="instruction">
+        <strong>Aufgabe:</strong> Übersetzen Sie die deutschen Sätze, indem Sie die russischen Wörter anklicken.<br>
+        <strong>Achtung:</strong> Manchmal brauchen Sie das Wort „есть“ (Existenz), manchmal nicht (Beschreibung). Das Wort „есть“ ist oft als Falle dabei!
+    </div>
+
+    <div id="exercise-area">
+        <!-- Aufgaben werden hier generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="renderAll()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+
+    <div id="toast" class="feedback-toast">Falsches Wort!</div>
+</div>
+
+<script>
+    // Datenstruktur: Kontrastpaare
+    const pairs = [
+        {
+            id: 1,
+            title: "Paar 1: Schwester",
+            tasks: [
+                {
+                    german: "Ich habe eine Schwester.",
+                    hint: "(Existenz -> есть)",
+                    solution: ["У", "меня", "есть", "сестра."],
+                    pool: ["У", "меня", "сестра.", "есть"]
+                },
+                {
+                    german: "Ich habe eine kluge Schwester.",
+                    hint: "(Beschreibung -> kein есть)",
+                    solution: ["У", "меня", "умная", "сестра."],
+                    pool: ["У", "меня", "умная", "сестра.", "есть"]
+                }
+            ]
+        },
+        {
+            id: 2,
+            title: "Paar 2: Auto",
+            tasks: [
+                {
+                    german: "Er hat ein Auto.",
+                    hint: "(Besitz -> есть)",
+                    solution: ["У", "него", "есть", "машина."],
+                    pool: ["У", "него", "есть", "машина."]
+                },
+                {
+                    german: "Er hat ein neues Auto.",
+                    hint: "(Eigenschaft -> kein есть)",
+                    solution: ["У", "него", "новая", "машина."],
+                    pool: ["У", "него", "новая", "машина.", "есть"]
+                }
+            ]
+        },
+        {
+            id: 3,
+            title: "Paar 3: Augen",
+            tasks: [
+                {
+                    german: "Sie hat blaue Augen.",
+                    hint: "(Körperteil + Farbe -> kein есть)",
+                    solution: ["У", "неё", "голубые", "глаза."],
+                    pool: ["У", "неё", "голубые", "глаза.", "есть"]
+                },
+                {
+                    german: "Sie hat ein drittes Auge.",
+                    hint: "(Besonderheit! -> есть)",
+                    solution: ["У", "неё", "есть", "третий", "глаз."],
+                    pool: ["У", "неё", "есть", "третий", "глаз."]
+                }
+            ]
+        },
+        {
+            id: 4,
+            title: "Paar 4: Zeit",
+            tasks: [
+                {
+                    german: "Wir haben Zeit.",
+                    hint: "(Existenz)",
+                    solution: ["У", "нас", "есть", "время."],
+                    pool: ["У", "нас", "есть", "время."]
+                },
+                {
+                    german: "Wir haben wenig Zeit.",
+                    hint: "(Menge/Beschreibung -> kein есть)",
+                    solution: ["У", "нас", "мало", "времени."],
+                    pool: ["У", "нас", "мало", "времени.", "есть"]
+                }
+            ]
+        },
+        {
+            id: 5,
+            title: "Paar 5: Frage",
+            tasks: [
+                {
+                    german: "Hast du eine Frage?",
+                    hint: "(Existenz)",
+                    solution: ["У", "тебя", "есть", "вопрос?"],
+                    pool: ["У", "тебя", "есть", "вопрос?"]
+                },
+                {
+                    german: "Hast du eine schwierige Frage?",
+                    hint: "(Eigenschaft -> kein есть)",
+                    solution: ["У", "тебя", "сложный", "вопрос?"],
+                    pool: ["У", "тебя", "сложный", "вопрос?", "есть"]
+                }
+            ]
+        },
+        {
+            id: 6,
+            title: "Paar 6: Plan",
+            tasks: [
+                {
+                    german: "Ich habe einen Plan.",
+                    hint: "(Existenz)",
+                    solution: ["У", "меня", "есть", "план."],
+                    pool: ["У", "меня", "есть", "план."]
+                },
+                {
+                    german: "Ich habe einen interessanten Plan.",
+                    hint: "(Eigenschaft -> kein есть)",
+                    solution: ["У", "меня", "интересный", "план."],
+                    pool: ["У", "меня", "интересный", "план.", "есть"]
+                }
+            ]
+        },
+        {
+            id: 7,
+            title: "Paar 7: Ticket",
+            tasks: [
+                {
+                    german: "Wir haben ein Ticket.",
+                    hint: "(Besitz)",
+                    solution: ["У", "нас", "есть", "билет."],
+                    pool: ["У", "нас", "есть", "билет."]
+                },
+                {
+                    german: "Wir haben ein elektronisches Ticket.",
+                    hint: "(Eigenschaft -> kein есть)",
+                    solution: ["У", "нас", "электронный", "билет."],
+                    pool: ["У", "нас", "электронный", "билет.", "есть"]
+                }
+            ]
+        },
+        {
+            id: 8,
+            title: "Paar 8: Problem",
+            tasks: [
+                {
+                    german: "Sie hat ein Problem.",
+                    hint: "(Existenz)",
+                    solution: ["У", "неё", "есть", "проблема."],
+                    pool: ["У", "неё", "есть", "проблема."]
+                },
+                {
+                    german: "Sie hat ein großes Problem.",
+                    hint: "(Eigenschaft -> kein есть)",
+                    solution: ["У", "неё", "большая", "проблема."],
+                    pool: ["У", "неё", "большая", "проблема.", "есть"]
+                }
+            ]
+        }
+    ];
+
+    // Status-Tracking
+    let progressState = {};
+
+    function renderAll() {
+        const container = document.getElementById('exercise-area');
+        container.innerHTML = '';
+        progressState = {};
+
+        pairs.forEach((pair, pairIndex) => {
+            const pairDiv = document.createElement('div');
+            pairDiv.className = 'contrast-pair';
+            
+            const title = document.createElement('div');
+            title.className = 'pair-title';
+            title.textContent = pair.title;
+            pairDiv.appendChild(title);
+
+            pair.tasks.forEach((task, taskIndex) => {
+                // Eindeutige ID für jeden Satz: p1-t0, p1-t1 etc.
+                const uniqueId = `p${pairIndex}-t${taskIndex}`;
+                progressState[uniqueId] = 0; // Wie viele Wörter schon korrekt geklickt
+
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'sentence-task';
+                taskDiv.id = `task-${uniqueId}`;
+
+                // Deutscher Satz
+                const de = document.createElement('div');
+                de.className = 'german-sentence';
+                de.innerHTML = `${task.german} <span>${task.hint}</span>`;
+                taskDiv.appendChild(de);
+
+                // Zielbereich
+                const target = document.createElement('div');
+                target.className = 'target-area';
+                target.id = `target-${uniqueId}`;
+                taskDiv.appendChild(target);
+
+                // Wortbank
+                const bank = document.createElement('div');
+                bank.className = 'word-bank';
+                
+                // Wörter mischen
+                let shuffledPool = [...task.pool].sort(() => Math.random() - 0.5);
+
+                shuffledPool.forEach(word => {
+                    const btn = document.createElement('button');
+                    btn.className = 'word-btn';
+                    btn.textContent = word;
+                    btn.onclick = () => handleWordClick(uniqueId, word, btn, task.solution);
+                    bank.appendChild(btn);
+                });
+
+                taskDiv.appendChild(bank);
+                pairDiv.appendChild(taskDiv);
+            });
+
+            container.appendChild(pairDiv);
+        });
+    }
+
+    function handleWordClick(id, clickedWord, btn, solution) {
+        const currentIndex = progressState[id];
+        
+        // Wenn Satz schon fertig, Abbruch
+        if (currentIndex >= solution.length) return;
+
+        const expectedWord = solution[currentIndex];
+
+        if (clickedWord === expectedWord) {
+            // Richtiges Wort
+            acceptWord(id, clickedWord, btn);
+            progressState[id]++;
+
+            // Prüfen ob fertig
+            if (progressState[id] === solution.length) {
+                document.getElementById(`task-${id}`).classList.add('completed');
+                // Optional: Kleines Häkchen
+                const check = document.createElement('span');
+                check.innerHTML = ' &#10004;';
+                check.style.color = 'var(--success)';
+                check.style.fontSize = '1.5rem';
+                document.getElementById(`target-${id}`).appendChild(check);
+            }
+        } else {
+            // Falsches Wort
+            showError(btn);
+        }
+    }
+
+    function acceptWord(id, word, btn) {
+        btn.classList.add('used');
+        
+        const target = document.getElementById(`target-${id}`);
+        const span = document.createElement('span');
+        span.className = 'target-word';
+        span.textContent = word;
+        target.appendChild(span);
+    }
+
+    function showError(btn) {
+        btn.classList.add('shake');
+        showToast("Das ist nicht das nächste Wort (oder falsch)!");
+        setTimeout(() => {
+            btn.classList.remove('shake');
+        }, 500);
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('visible');
+        setTimeout(() => {
+            toast.classList.remove('visible');
+        }, 2000);
+    }
+
+    function showAllSolutions() {
+        // Erst alles resetten
+        renderAll();
+
+        pairs.forEach((pair, pairIndex) => {
+            pair.tasks.forEach((task, taskIndex) => {
+                const uniqueId = `p${pairIndex}-t${taskIndex}`;
+                const target = document.getElementById(`target-${uniqueId}`);
+                const taskDiv = document.getElementById(`task-${uniqueId}`);
+                
+                // Wortbank verstecken
+                const bank = taskDiv.querySelector('.word-bank');
+                if(bank) bank.style.display = 'none';
+
+                // Lösung schreiben
+                target.innerHTML = '';
+                task.solution.forEach(word => {
+                    const span = document.createElement('span');
+                    span.className = 'target-word';
+                    span.textContent = word;
+                    target.appendChild(span);
+                });
+
+                taskDiv.classList.add('completed');
+            });
+        });
+    }
+
+    // Start
+    window.onload = renderAll;
+
+</script>
+
+</body>
+</html>
