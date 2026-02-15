@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Memory: Das Verb "есть"</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card-back: #3f51b5;
+            --card-face: #ffffff;
+            --text: #333;
+            --radius: 10px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.8rem; }
+        p { margin: 0; color: #666; }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Das Grid */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Desktop: 4 Spalten */
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+            perspective: 1000px;
+        }
+
+        /* Die Karte */
+        .card {
+            background-color: transparent;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Der Container für die Drehung */
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: var(--radius);
+        }
+
+        /* Zustand: Umgedreht */
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Vorder- und Rückseite */
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Rückseite (Wenn verdeckt) */
+        .card-back {
+            background-color: var(--card-back);
+            color: white;
+            font-size: 2rem;
+            background-image: linear-gradient(135deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+            background-size: 20px 20px;
+        }
+
+        /* Vorderseite (Wenn offen - Text) */
+        .card-front {
+            background-color: var(--card-face);
+            color: #333;
+            transform: rotateY(180deg);
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.4;
+            border: 2px solid #ddd; /* Standard Rahmen */
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        /* Text-Styles */
+        .highlight-est {
+            color: var(--primary);
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .highlight-de {
+            color: #555;
+            font-style: italic;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Overlay bei Sieg */
+        .win-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .win-overlay.visible { opacity: 1; pointer-events: all; }
+        
+        .win-overlay h2 { font-size: 2.5rem; margin-bottom: 20px; color: #4caf50; }
+        .win-overlay button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: var(--primary);
+            border: none;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        /* Buttons unten */
+        .controls { 
+            margin-top: 30px; 
+            display: flex;
+            gap: 15px;
+        }
+        
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-reset { background: #607d8b; }
+        .btn-solve { background: #ff9800; }
+
+        /* Responsive */
+        @media (max-width: 650px) {
+            .memory-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            .card-front { font-size: 0.85rem; }
+        }
+
+        @media (max-width: 450px) {
+            .memory-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .card-front { font-size: 1rem; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Memory: „есть“ oder nicht?</h1>
+    <p>Finden Sie die Paare: Deutscher Satz und russische Übersetzung.</p>
+</header>
+
+<div class="stats">
+    <span>Züge: <span id="moves">0</span></span>
+    <span>Paare: <span id="pairs">0</span>/8</span>
+</div>
+
+<div class="memory-grid" id="game-board">
+    <!-- Karten werden per JS generiert -->
+</div>
+
+<div class="controls">
+    <button class="ctrl-btn btn-reset" onclick="initGame()">Spiel neu starten</button>
+    <button class="ctrl-btn btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+</div>
+
+<!-- Gewonnen Bildschirm -->
+<div class="win-overlay" id="win-screen">
+    <h2>Gewonnen!</h2>
+    <p>Super gemacht!</p>
+    <br>
+    <button onclick="initGame()">Nochmal spielen</button>
+</div>
+
+<script>
+    // Die Datenpaare (8 Paare = 16 Karten)
+    const cardData = [
+        { 
+            id: 1, 
+            de: "Ich habe eine Idee.<span class='highlight-de'>(Existenz)</span>", 
+            ru: "У меня <span class='highlight-est'>есть</span> идея." 
+        },
+        { 
+            id: 2, 
+            de: "Ich habe eine gute Idee.<span class='highlight-de'>(Eigenschaft)</span>", 
+            ru: "У меня хорошая идея." 
+        },
+        { 
+            id: 3, 
+            de: "Er hat ein Auto.<span class='highlight-de'>(Besitz)</span>", 
+            ru: "У него <span class='highlight-est'>есть</span> машина." 
+        },
+        { 
+            id: 4, 
+            de: "Er hat ein neues Auto.<span class='highlight-de'>(Beschreibung)</span>", 
+            ru: "У него новая машина." 
+        },
+        { 
+            id: 5, 
+            de: "Sie hat blaue Augen.<span class='highlight-de'>(Körperteil)</span>", 
+            ru: "У неё голубые глаза." 
+        },
+        { 
+            id: 6, 
+            de: "Sie hat ein Tattoo.<span class='highlight-de'>(Besonderheit)</span>", 
+            ru: "У неё <span class='highlight-est'>есть</span> татуировка." 
+        },
+        { 
+            id: 7, 
+            de: "Wir haben Zeit.<span class='highlight-de'>(Existenz)</span>", 
+            ru: "У нас <span class='highlight-est'>есть</span> время." 
+        },
+        { 
+            id: 8, 
+            de: "Er hat Grippe.<span class='highlight-de'>(Krankheit)</span>", 
+            ru: "У него грипп." 
+        }
+    ];
+
+    // Farbpalette für die Paare (Hintergrund + Dunklerer Rahmen)
+    const colorPalette = [
+        { bg: '#ffcdd2', border: '#e57373' }, // Rot
+        { bg: '#bbdefb', border: '#64b5f6' }, // Blau
+        { bg: '#c8e6c9', border: '#81c784' }, // Grün
+        { bg: '#fff9c4', border: '#fff176' }, // Gelb
+        { bg: '#e1bee7', border: '#ba68c8' }, // Lila
+        { bg: '#ffe0b2', border: '#ffb74d' }, // Orange
+        { bg: '#b2dfdb', border: '#4db6ac' }, // Türkis
+        { bg: '#f8bbd0', border: '#f06292' }  // Pink
+    ];
+
+    let hasFlippedCard = false;
+    let lockBoard = false;
+    let firstCard, secondCard;
+    let moves = 0;
+    let pairsFound = 0;
+    let solutionShown = false; // Flag, ob Lösung angezeigt wurde
+
+    const board = document.getElementById('game-board');
+    const movesDisplay = document.getElementById('moves');
+    const pairsDisplay = document.getElementById('pairs');
+    const winScreen = document.getElementById('win-screen');
+
+    function initGame() {
+        // Reset Variables
+        hasFlippedCard = false;
+        lockBoard = false;
+        firstCard = null;
+        secondCard = null;
+        moves = 0;
+        pairsFound = 0;
+        solutionShown = false;
+
+        movesDisplay.textContent = moves;
+        pairsDisplay.textContent = pairsFound;
+        winScreen.classList.remove('visible');
+        board.innerHTML = '';
+
+        // Create Card Array (Doubling the data: one German, one Russian)
+        let deck = [];
+        
+        cardData.forEach(item => {
+            deck.push({ id: item.id, content: item.de, type: 'de' });
+            deck.push({ id: item.id, content: item.ru, type: 'ru' });
+        });
+
+        // Shuffle (Fisher-Yates)
+        deck.sort(() => 0.5 - Math.random());
+
+        // Render HTML
+        deck.forEach(item => {
+            const cardElement = document.createElement('div');
+            cardElement.classList.add('card');
+            cardElement.dataset.pairId = item.id;
+            
+            cardElement.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-front">${item.content}</div>
+                    <div class="card-back">?</div>
+                </div>
+            `;
+
+            cardElement.addEventListener('click', flipCard);
+            board.appendChild(cardElement);
+        });
+    }
+
+    function flipCard() {
+        if (lockBoard) return;
+        if (this === firstCard) return;
+
+        this.classList.add('flipped');
+
+        if (!hasFlippedCard) {
+            hasFlippedCard = true;
+            firstCard = this;
+            return;
+        }
+
+        secondCard = this;
+        incrementMoves();
+        checkForMatch();
+    }
+
+    function incrementMoves() {
+        if (!solutionShown) {
+            moves++;
+            movesDisplay.textContent = moves;
+        }
+    }
+
+    function checkForMatch() {
+        let isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
+
+        if (isMatch) {
+            disableCards();
+        } else {
+            unflipCards();
+        }
+    }
+
+    function disableCards() {
+        firstCard.removeEventListener('click', flipCard);
+        secondCard.removeEventListener('click', flipCard);
+        
+        // Farbe anwenden
+        const pairId = firstCard.dataset.pairId;
+        applyColorToPair(firstCard, pairId);
+        applyColorToPair(secondCard, pairId);
+
+        pairsFound++;
+        pairsDisplay.textContent = pairsFound;
+
+        resetBoard();
+
+        if (pairsFound === cardData.length && !solutionShown) {
+            setTimeout(() => {
+                winScreen.classList.add('visible');
+            }, 500);
+        }
+    }
+
+    function applyColorToPair(card, pairId) {
+        // pairId ist 1-8. Array ist 0-7.
+        const colorObj = colorPalette[(pairId - 1) % colorPalette.length];
+        const front = card.querySelector('.card-front');
+        
+        front.style.backgroundColor = colorObj.bg;
+        front.style.borderColor = colorObj.border;
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+        setTimeout(() => {
+            firstCard.classList.remove('flipped');
+            secondCard.classList.remove('flipped');
+            resetBoard();
+        }, 1200);
+    }
+
+    function resetBoard() {
+        [hasFlippedCard, lockBoard] = [false, false];
+        [firstCard, secondCard] = [null, null];
+    }
+
+    function showSolution() {
+        if (lockBoard && !solutionShown) return; // Verhindert Bug während Animation
+        solutionShown = true;
+        lockBoard = true; // User kann nicht mehr spielen
+
+        const allCards = document.querySelectorAll('.card');
+        
+        allCards.forEach(card => {
+            // Umdrehen erzwingen
+            card.classList.add('flipped');
+            
+            // Farbe anwenden
+            const pId = card.dataset.pairId;
+            applyColorToPair(card, pId);
+            
+            // Klicks deaktivieren
+            card.removeEventListener('click', flipCard);
+        });
+
+        // Stats auf voll setzen
+        pairsFound = cardData.length;
+        pairsDisplay.textContent = pairsFound;
+    }
+
+    // Start beim Laden
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
