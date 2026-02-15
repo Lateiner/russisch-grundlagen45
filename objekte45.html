@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Piktogramm-Übung (Dropdown)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --success-bg: #e8f5e9;
+            --success-border: #2e7d32;
+            --error-bg: #ffebee;
+            --error-border: #c62828;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+
+        .instruction {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Grid Layout */
+        .picto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .picto-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .picto-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .emoji-visual {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            height: 80px; /* Fixe Höhe, damit Karten gleichmäßiger sind */
+            display: flex;
+            align-items: center;
+        }
+
+        .sentence-row {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        /* Dropdown Styling */
+        select {
+            appearance: none; /* Standard-Styling entfernen für einheitlichen Look */
+            background-color: #fff;
+            border: 2px solid #bbb;
+            border-radius: 8px;
+            padding: 5px 30px 5px 15px; /* Platz für Pfeil */
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            outline: none;
+            text-align: center;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 10px auto;
+            min-width: 90px;
+            transition: all 0.2s;
+        }
+
+        /* Sofortiges Feedback */
+        select.correct {
+            background-color: var(--success-bg);
+            border-color: var(--success-border);
+            color: var(--success-border);
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%232e7d32%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        }
+
+        select.incorrect {
+            background-color: var(--error-bg);
+            border-color: var(--error-border);
+            color: var(--error-border);
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23c62828%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            animation: shake 0.4s;
+        }
+
+        .translation {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Footer Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            margin-bottom: 50px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-reset { background-color: #607d8b; }
+        .btn-solve { background-color: var(--primary); }
+
+        /* Mobile Fixes */
+        @media (max-width: 600px) {
+            .picto-grid { grid-template-columns: 1fr; } /* Eine Spalte auf Mobile */
+            .sentence-row { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Piktogramm-Übung</h1>
+        <p>Wählen Sie aus: Brauchen wir <strong>есть</strong> oder nicht (<strong>–</strong>)?</p>
+    </header>
+
+    <div class="instruction">
+        <strong>Regel:</strong> 
+        Objekt ohne Adjektiv (Besitz) &#8594; <strong>есть</strong>.<br>
+        Objekt mit Adjektiv (Beschreibung) &#8594; <strong>–</strong>.
+    </div>
+
+    <div id="grid-area" class="picto-grid">
+        <!-- Karten werden per JS generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="renderGrid()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Die 12 Aufgaben
+    const data = [
+        { id: 1, emoji: "☂️", pre: "У меня", post: "зонт.", correct: "есть", trans: "Ich habe einen Schirm." },
+        { id: 2, emoji: "🔴☂️", pre: "У меня", post: "красный зонт.", correct: "–", trans: "Ich habe einen roten Schirm." },
+        { id: 3, emoji: "🚗", pre: "У него", post: "машина.", correct: "есть", trans: "Er hat ein Auto." },
+        { id: 4, emoji: "🏎️", pre: "У него", post: "быстрая машина.", correct: "–", trans: "Er hat ein schnelles Auto." },
+        { id: 5, emoji: "🐈", pre: "У нас", post: "кошка.", correct: "есть", trans: "Wir haben eine Katze." },
+        { id: 6, emoji: "🐈‍⬛", pre: "У нас", post: "чёрная кошка.", correct: "–", trans: "Wir haben eine schwarze Katze." },
+        { id: 7, emoji: "🍎", pre: "У неё", post: "яблоко.", correct: "есть", trans: "Sie hat einen Apfel." },
+        { id: 8, emoji: "🍏", pre: "У неё", post: "зелёное яблоко.", correct: "–", trans: "Sie hat einen grünen Apfel." },
+        { id: 9, emoji: "🏠", pre: "У них", post: "дом.", correct: "есть", trans: "Sie haben ein Haus." },
+        { id: 10, emoji: "🏰", pre: "У них", post: "старый дом.", correct: "–", trans: "Sie haben ein altes Haus." },
+        { id: 11, emoji: "🎫", pre: "У меня", post: "билет.", correct: "есть", trans: "Ich habe ein Ticket." },
+        { id: 12, emoji: "📱🎫", pre: "У меня", post: "электронный билет.", correct: "–", trans: "Ich habe ein elektronisches Ticket." }
+    ];
+
+    function renderGrid() {
+        const grid = document.getElementById('grid-area');
+        grid.innerHTML = '';
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'picto-card';
+
+            // Emoji
+            const visual = document.createElement('div');
+            visual.className = 'emoji-visual';
+            visual.textContent = item.emoji;
+            card.appendChild(visual);
+
+            // Satz-Zeile
+            const sentence = document.createElement('div');
+            sentence.className = 'sentence-row';
+            
+            // Text davor
+            sentence.appendChild(document.createTextNode(item.pre + " "));
+
+            // Dropdown
+            const select = document.createElement('select');
+            select.id = `select-${item.id}`;
+            select.dataset.ans = item.correct;
+            
+            // Optionen
+            const optDefault = document.createElement('option');
+            optDefault.value = "";
+            optDefault.text = "...";
+            optDefault.disabled = true;
+            optDefault.selected = true;
+            
+            const optEst = document.createElement('option');
+            optEst.value = "есть";
+            optEst.text = "есть";
+            
+            const optDash = document.createElement('option');
+            optDash.value = "–";
+            optDash.text = "–";
+
+            select.add(optDefault);
+            select.add(optEst);
+            select.add(optDash);
+
+            // Event Listener für sofortiges Feedback
+            select.addEventListener('change', function() {
+                check(this);
+            });
+
+            sentence.appendChild(select);
+
+            // Text danach
+            sentence.appendChild(document.createTextNode(" " + item.post));
+            card.appendChild(sentence);
+
+            // Übersetzung
+            const trans = document.createElement('div');
+            trans.className = 'translation';
+            trans.textContent = item.trans;
+            card.appendChild(trans);
+
+            grid.appendChild(card);
+        });
+    }
+
+    function check(selectEl) {
+        const userValue = selectEl.value;
+        const correctValue = selectEl.dataset.ans;
+
+        // Reset
+        selectEl.classList.remove('correct', 'incorrect');
+
+        if (userValue === "") return;
+
+        if (userValue === correctValue) {
+            selectEl.classList.add('correct');
+        } else {
+            selectEl.classList.add('incorrect');
+            // Kleiner Shake-Effekt via JS-Klasse-Reset, damit Animation erneut spielt
+            // (Hier vereinfacht nur über CSS-Klasse gelöst)
+        }
+    }
+
+    function showAllSolutions() {
+        data.forEach(item => {
+            const select = document.getElementById(`select-${item.id}`);
+            select.value = item.correct;
+            check(select); // Trigger visual feedback
+        });
+    }
+
+    // Init beim Laden
+    window.onload = renderGrid;
+
+</script>
+
+</body>
+</html>
