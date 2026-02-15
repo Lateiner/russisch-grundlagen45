@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Übung: есть oder nicht? (10 Sätze)</title>
+    <style>
+        :root {
+            --primary-color: #0056b3; /* Dunkles Blau */
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success-color: #28a745;
+            --success-bg: #d4edda;
+            --error-color: #dc3545;
+            --error-bg: #f8d7da;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+            font-size: 1rem;
+        }
+
+        /* Aufgaben-Layout */
+        .exercise-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sentence-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            border-left: 5px solid #ccc;
+            font-size: 1.1rem;
+            display: flex;
+            flex-wrap: wrap; /* Wichtig für Responsivität */
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .sentence-text {
+            margin-right: 10px;
+        }
+
+        /* Das Dropdown-Menü */
+        select {
+            font-size: 1rem;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            min-width: 100px;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Feedback-Styles (Sofort) */
+        select.correct {
+            border-color: var(--success-color);
+            background-color: var(--success-bg);
+            color: var(--success-color);
+            font-weight: bold;
+        }
+        
+        .sentence-item.correct-row {
+            border-left-color: var(--success-color);
+            background-color: var(--success-bg);
+        }
+
+        select.incorrect {
+            border-color: var(--error-color);
+            background-color: var(--error-bg);
+            color: var(--error-color);
+        }
+
+        .sentence-item.incorrect-row {
+            border-left-color: var(--error-color);
+        }
+
+        /* Erklärungstext (erscheint bei falscher Antwort optional, hier einfach als Hinweis) */
+        .hint {
+            font-size: 0.85rem;
+            color: #666;
+            width: 100%;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Buttons */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-weight: 600;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-reset {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-solve {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-solve:hover {
+            background-color: #004494;
+        }
+
+        /* Mobile Optimierung */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .sentence-item {
+                font-size: 1rem;
+                padding: 12px;
+            }
+            select {
+                width: 100%; /* Auf Handy volle Breite für einfacheres Tippen */
+                margin-top: 8px;
+                margin-bottom: 8px;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Grammatik: есть oder nicht?</h1>
+    <div class="description">
+        Entscheiden Sie: Braucht der Satz das Wort <strong>есть</strong> (Existenz/Besitz) oder bleibt die Lücke <strong>leer</strong> (–) (Beschreibung/Eigenschaft)?
+    </div>
+
+    <div class="exercise-list">
+        
+        <!-- Satz 1 -->
+        <div class="sentence-item">
+            <span class="sentence-text">1. У тебя </span>
+            <select data-solution="есть" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> вопрос?</span>
+            <div class="hint">(Fokus: Hast du überhaupt einen?)</div>
+        </div>
+
+        <!-- Satz 2 -->
+        <div class="sentence-item">
+            <span class="sentence-text">2. У тебя </span>
+            <select data-solution="-" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> сложный вопрос?</span>
+            <div class="hint">(Fokus: Adjektiv "сложный" beschreibt die Art.)</div>
+        </div>
+
+        <!-- Satz 3 -->
+        <div class="sentence-item">
+            <span class="sentence-text">3. У кошки </span>
+            <select data-solution="-" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> зелёные глаза.</span>
+            <div class="hint">(Fokus: Körperteil + Farbe.)</div>
+        </div>
+
+        <!-- Satz 4 -->
+        <div class="sentence-item">
+            <span class="sentence-text">4. У девушки </span>
+            <select data-solution="есть" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> татуировка.</span>
+            <div class="hint">(Fokus: Besonderheit am Körper/Existenz.)</div>
+        </div>
+
+        <!-- Satz 5 -->
+        <div class="sentence-item">
+            <span class="sentence-text">5. В городе </span>
+            <select data-solution="есть" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> театр.</span>
+            <div class="hint">(Fokus: Es gibt dort ein Theater.)</div>
+        </div>
+
+        <!-- Satz 6 -->
+        <div class="sentence-item">
+            <span class="sentence-text">6. В городе </span>
+            <select data-solution="-" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> большой театр.</span>
+            <div class="hint">(Fokus: Das Theater ist groß.)</div>
+        </div>
+
+        <!-- Satz 7 -->
+        <div class="sentence-item">
+            <span class="sentence-text">7. У брата </span>
+            <select data-solution="-" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> грипп.</span>
+            <div class="hint">(Fokus: Krankheit.)</div>
+        </div>
+
+        <!-- Satz 8 -->
+        <div class="sentence-item">
+            <span class="sentence-text">8. У меня завтра </span>
+            <select data-solution="есть" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> время.</span>
+            <div class="hint">(Fokus: Existenz - Ich habe Zeit.)</div>
+        </div>
+
+        <!-- Satz 9 (NEU) -->
+        <div class="sentence-item">
+            <span class="sentence-text">9. У меня сейчас </span>
+            <select data-solution="-" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> урок.</span>
+            <div class="hint">(Fokus: Ich bin jetzt im Unterricht / beschäftigt.)</div>
+        </div>
+
+        <!-- Satz 10 (NEU) -->
+        <div class="sentence-item">
+            <span class="sentence-text">10. У вас </span>
+            <select data-solution="есть" onchange="checkAnswer(this)">
+                <option value="" selected disabled>?</option>
+                <option value="есть">есть</option>
+                <option value="-">–</option>
+            </select>
+            <span class="sentence-text"> дети?</span>
+            <div class="hint">(Fokus: Haben Sie überhaupt Kinder?)</div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /**
+     * Prüft die Antwort sofort nach Auswahl (onchange)
+     */
+    function checkAnswer(selectElement) {
+        const userValue = selectElement.value;
+        const correctValue = selectElement.getAttribute('data-solution');
+        const parentRow = selectElement.closest('.sentence-item');
+
+        // Styles zurücksetzen
+        selectElement.classList.remove('correct', 'incorrect');
+        parentRow.classList.remove('correct-row', 'incorrect-row');
+
+        if (userValue === correctValue) {
+            selectElement.classList.add('correct');
+            parentRow.classList.add('correct-row');
+        } else {
+            selectElement.classList.add('incorrect');
+            parentRow.classList.add('incorrect-row');
+        }
+    }
+
+    /**
+     * Setzt alle Eingaben und Styles zurück
+     */
+    function resetAll() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.selectedIndex = 0; // Setzt auf "?" zurück
+            select.classList.remove('correct', 'incorrect');
+            
+            const parentRow = select.closest('.sentence-item');
+            parentRow.classList.remove('correct-row', 'incorrect-row');
+        });
+    }
+
+    /**
+     * Füllt alle Felder mit der richtigen Lösung aus
+     */
+    function showSolution() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            const correctValue = select.getAttribute('data-solution');
+            select.value = correctValue;
+            
+            // Trigger die visuelle Überprüfung
+            checkAnswer(select);
+        });
+    }
+</script>
+
+</body>
+</html>
