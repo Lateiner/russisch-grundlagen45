@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Rückübersetzung & Analyse</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333;
+            --word-bg: #e3f2fd;
+            --word-text: #1565c0;
+            --success: #2e7d32;
+            --error: #c62828;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+
+        .instruction {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        /* Card Styles */
+        .task-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .task-card.solved {
+            border-left: 6px solid var(--success);
+            background-color: #f1f8e9;
+        }
+
+        /* 1. Der russische Satz */
+        .russian-sentence {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 2. Übersetzungs-Bereich */
+        .section-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #777;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .translation-area {
+            min-height: 50px;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            background-color: #fafafa;
+            transition: border-color 0.3s;
+        }
+
+        .translation-area.correct {
+            border-color: var(--success);
+            border-style: solid;
+            background-color: rgba(46, 125, 50, 0.05);
+        }
+
+        .word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .word-btn {
+            background-color: var(--word-bg);
+            color: var(--word-text);
+            border: 1px solid #bbdefb;
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            user-select: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+        }
+
+        .word-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 5px rgba(0,0,0,0.1);
+        }
+
+        .word-btn.used {
+            opacity: 0.5;
+            pointer-events: none;
+            background-color: #e0e0e0;
+            color: #999;
+            border-color: #ccc;
+            box-shadow: none;
+        }
+
+        /* 3. Analyse-Bereich (Warum?) */
+        .analysis-section {
+            opacity: 0.5;
+            pointer-events: none; /* Erst aktiv, wenn Übersetzung fertig */
+            transition: opacity 0.3s;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .analysis-section.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .reason-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .reason-btn {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .reason-btn:hover {
+            border-color: #bbb;
+            background-color: #f9f9f9;
+        }
+
+        .reason-btn.correct {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .reason-btn.wrong {
+            background-color: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        /* Feedback Text */
+        .feedback-text {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: none;
+        }
+        .feedback-text.success { color: var(--success); display: block; }
+        .feedback-text.error { color: var(--error); display: block; }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            margin-bottom: 50px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-reset { background-color: #607d8b; }
+        .btn-solve { background-color: var(--primary); }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .russian-sentence { font-size: 1.2rem; }
+            .reason-btn { width: 100%; }
+        }
+
+        /* Animationen */
+        .shake { animation: shake 0.4s; }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Rückübersetzung & Analyse</h1>
+        <p>1. Übersetzen Sie den Satz. <br> 2. Erklären Sie: Warum steht dort „есть“ (oder warum nicht)?</p>
+    </header>
+
+    <div class="instruction">
+        <strong>Schritt 1:</strong> Klicken Sie die deutschen Wörter an, um den russischen Satz zu übersetzen.<br>
+        <strong>Schritt 2:</strong> Sobald die Übersetzung stimmt, wählen Sie die grammatikalische Begründung aus.
+    </div>
+
+    <div id="tasks-area">
+        <!-- Aufgaben werden generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="renderTasks()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const data = [
+        {
+            id: 1,
+            russian: "У меня есть вопрос.",
+            germanWords: ["Ich", "habe", "eine", "Frage."],
+            reason: "exist", // exist | desc
+            explanation: "Betonung auf Existenz (Besitz)."
+        },
+        {
+            id: 2,
+            russian: "У меня сложный вопрос.",
+            germanWords: ["Ich", "habe", "eine", "schwierige", "Frage."],
+            reason: "desc",
+            explanation: "Das Adjektiv „schwierig“ beschreibt die Frage. Fokus auf Eigenschaft."
+        },
+        {
+            id: 3,
+            russian: "У брата грипп.",
+            germanWords: ["Der", "Bruder", "hat", "Grippe."],
+            reason: "desc", // Krankheiten fallen unter Zustand/Beschreibung (kein есть)
+            explanation: "Bei Krankheiten verwenden wir kein „есть“."
+        },
+        {
+            id: 4,
+            russian: "В парке есть озеро.",
+            germanWords: ["Im", "Park", "gibt", "es", "einen", "See."],
+            reason: "exist",
+            explanation: "Es wird betont, dass der See dort existiert."
+        },
+        {
+            id: 5,
+            russian: "У неё красивые волосы.",
+            germanWords: ["Sie", "hat", "schöne", "Haare."],
+            reason: "desc",
+            explanation: "Körperteil + Adjektiv (schön) -> Beschreibung."
+        },
+        {
+            id: 6,
+            russian: "У него есть татуировка.",
+            germanWords: ["Er", "hat", "ein", "Tattoo."],
+            reason: "exist",
+            explanation: "Eine Besonderheit am Körper wird wie ein Besitz (Existenz) behandelt."
+        },
+        {
+            id: 7,
+            russian: "У тебя есть время?",
+            germanWords: ["Hast", "du", "Zeit?"],
+            reason: "exist",
+            explanation: "Frage nach dem Vorhandensein von Zeit."
+        },
+        {
+            id: 8,
+            russian: "У мамы добрая улыбка.",
+            germanWords: ["Mama", "hat", "ein", "gutes", "Lächeln."],
+            reason: "desc",
+            explanation: "Beschreibung einer Eigenschaft/eines Merkmals."
+        }
+    ];
+
+    // State Tracking
+    let progress = {};
+
+    function renderTasks() {
+        const container = document.getElementById('tasks-area');
+        container.innerHTML = '';
+        progress = {};
+
+        data.forEach(task => {
+            progress[task.id] = { 
+                currentWordIndex: 0, 
+                translated: false,
+                solved: false 
+            };
+
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${task.id}`;
+
+            // 1. Russisch
+            const ru = document.createElement('div');
+            ru.className = 'russian-sentence';
+            ru.textContent = task.russian;
+            card.appendChild(ru);
+
+            // 2. Übersetzung Label
+            const labelTrans = document.createElement('div');
+            labelTrans.className = 'section-label';
+            labelTrans.textContent = "Schritt 1: Übersetzung (Deutsch)";
+            card.appendChild(labelTrans);
+
+            // Drop Area
+            const transArea = document.createElement('div');
+            transArea.className = 'translation-area';
+            transArea.id = `trans-area-${task.id}`;
+            card.appendChild(transArea);
+
+            // Word Bank
+            const wordBank = document.createElement('div');
+            wordBank.className = 'word-bank';
+            
+            // Wörter mischen
+            let shuffled = [...task.germanWords].sort(() => Math.random() - 0.5);
+            shuffled.forEach(word => {
+                const btn = document.createElement('button');
+                btn.className = 'word-btn';
+                btn.textContent = word;
+                btn.onclick = () => handleWordClick(task.id, word, btn, task.germanWords);
+                wordBank.appendChild(btn);
+            });
+            card.appendChild(wordBank);
+
+            // 3. Analyse Bereich
+            const analysis = document.createElement('div');
+            analysis.className = 'analysis-section';
+            analysis.id = `analysis-${task.id}`;
+
+            const labelReason = document.createElement('div');
+            labelReason.className = 'section-label';
+            labelReason.textContent = "Schritt 2: Warum steht hier „есть“ (oder nicht)?";
+            analysis.appendChild(labelReason);
+
+            const reasonOpts = document.createElement('div');
+            reasonOpts.className = 'reason-options';
+
+            // Option A: Existenz
+            const btnExist = document.createElement('button');
+            btnExist.className = 'reason-btn';
+            btnExist.innerHTML = "<strong>Fokus: Existenz/Besitz</strong><br><small>Deshalb steht „есть“.</small>";
+            btnExist.onclick = () => checkReason(task.id, 'exist', btnExist, btnDesc);
+
+            // Option B: Beschreibung
+            const btnDesc = document.createElement('button');
+            btnDesc.className = 'reason-btn';
+            btnDesc.innerHTML = "<strong>Fokus: Beschreibung/Eigenschaft</strong><br><small>Deshalb steht <u>kein</u> „есть“.</small>";
+            btnDesc.onclick = () => checkReason(task.id, 'desc', btnDesc, btnExist);
+
+            reasonOpts.appendChild(btnExist);
+            reasonOpts.appendChild(btnDesc);
+            analysis.appendChild(reasonOpts);
+
+            // Feedback Element
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback-text';
+            feedback.id = `feedback-${task.id}`;
+            analysis.appendChild(feedback);
+
+            card.appendChild(analysis);
+            container.appendChild(card);
+        });
+    }
+
+    function handleWordClick(taskId, word, btn, correctOrder) {
+        const state = progress[taskId];
+        if (state.translated) return; // Schon fertig übersetzt
+
+        const expectedWord = correctOrder[state.currentWordIndex];
+
+        if (word === expectedWord) {
+            // Richtiges Wort
+            btn.classList.add('used');
+            
+            // Wort in Area einfügen
+            const area = document.getElementById(`trans-area-${taskId}`);
+            const span = document.createElement('span');
+            span.textContent = word;
+            span.style.padding = "5px 10px";
+            span.style.background = "#fff";
+            span.style.borderRadius = "4px";
+            span.style.border = "1px solid #ddd";
+            area.appendChild(span);
+
+            state.currentWordIndex++;
+
+            // Prüfen ob Satz komplett
+            if (state.currentWordIndex === correctOrder.length) {
+                state.translated = true;
+                area.classList.add('correct');
+                // Analyse freischalten
+                document.getElementById(`analysis-${taskId}`).classList.add('active');
+            }
+        } else {
+            // Falsches Wort
+            btn.classList.add('shake');
+            setTimeout(() => btn.classList.remove('shake'), 400);
+        }
+    }
+
+    function checkReason(taskId, selectedType, clickedBtn, otherBtn) {
+        const task = data.find(t => t.id === taskId);
+        const feedback = document.getElementById(`feedback-${taskId}`);
+        const card = document.getElementById(`card-${taskId}`);
+
+        // Reset Styles
+        clickedBtn.classList.remove('correct', 'wrong');
+        otherBtn.classList.remove('correct', 'wrong');
+
+        if (selectedType === task.reason) {
+            // Richtig
+            clickedBtn.classList.add('correct');
+            feedback.textContent = "Richtig! " + task.explanation;
+            feedback.className = "feedback-text success";
+            card.classList.add('solved');
+            progress[taskId].solved = true;
+        } else {
+            // Falsch
+            clickedBtn.classList.add('wrong');
+            feedback.textContent = "Nicht ganz. Überlege: Wird nur die Existenz betont oder eine Eigenschaft?";
+            feedback.className = "feedback-text error";
+        }
+    }
+
+    function showAllSolutions() {
+        // Resetten um sauberen State zu haben
+        renderTasks();
+
+        data.forEach(task => {
+            const taskId = task.id;
+            const state = progress[taskId];
+            
+            // 1. Übersetzung füllen
+            const area = document.getElementById(`trans-area-${taskId}`);
+            area.innerHTML = '';
+            task.germanWords.forEach(w => {
+                const span = document.createElement('span');
+                span.textContent = w;
+                span.style.padding = "5px 10px";
+                span.style.background = "#fff";
+                span.style.borderRadius = "4px";
+                span.style.border = "1px solid #ddd";
+                area.appendChild(span);
+            });
+            area.classList.add('correct');
+            
+            // Buttons deaktivieren
+            const wordBtns = document.querySelectorAll(`#card-${taskId} .word-btn`);
+            wordBtns.forEach(b => b.classList.add('used'));
+
+            // 2. Analyse freischalten und lösen
+            const analysis = document.getElementById(`analysis-${taskId}`);
+            analysis.classList.add('active');
+
+            const feedback = document.getElementById(`feedback-${taskId}`);
+            const card = document.getElementById(`card-${taskId}`);
+            
+            // Buttons finden (der erste ist Existenz, der zweite Beschreibung)
+            const btns = analysis.querySelectorAll('.reason-btn');
+            const btnExist = btns[0];
+            const btnDesc = btns[1];
+
+            if (task.reason === 'exist') {
+                btnExist.classList.add('correct');
+            } else {
+                btnDesc.classList.add('correct');
+            }
+
+            feedback.textContent = "Lösung: " + task.explanation;
+            feedback.className = "feedback-text success";
+            card.classList.add('solved');
+        });
+    }
+
+    // Init
+    window.onload = renderTasks;
+
+</script>
+
+</body>
+</html>
